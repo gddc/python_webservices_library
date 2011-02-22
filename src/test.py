@@ -4,7 +4,7 @@ import sugarcrm
 print "hello"
 
 #x = sugarcrm.Sugarcrm("http://ruttanvm.cs.kent.edu:4080/service/v2/rest.php")
-x = sugarcrm.Sugarcrm("http://ruttanvm.cs.kent.edu:4080/service/v2/rest.php", "class", "123")
+x = sugarcrm.Sugarcrm("http://ruttanvm.cs.kent.edu:4080/service/v2/rest.php", "class", "class123")
 
 if x.connected == 1:
     print "Connection Successful!"
