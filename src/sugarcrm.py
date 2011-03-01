@@ -26,13 +26,12 @@ class Sugarcrm:
     #   example: "http://www.example.com:8080/service/v2/rest.php"
     # The optional username and password removes the otherwise mandatory job of
     #   logging into the server after connection.
-
     def __init__(self, hostname, username=None, password=None):
 
         print "Connecting to: "+hostname
 
         ## @var connected
-        # Boolean value to ensure that the object has connected and logged on properly to the server 
+        # Boolean value to ensure that the object has connected and logged on properly to the server,
         #   may be unnecessary due to 'id' variable
         self.connected = 0
 
@@ -47,7 +46,11 @@ class Sugarcrm:
         ## @var last_call
         # The results of the last function called
         self.last_call = 0
-        
+
+        ## @var quiet
+        # The connection will print errors messages to stdout if false 
+        self.quiet = True
+
         # Fake login to make sure the host is valid
         try:
             x = self.login("BLANK", "FAKE")
@@ -56,9 +59,42 @@ class Sugarcrm:
         except ValueError:
             raise InvalidConnection
 
+        self.quiet = False
+
         # If the username and password are set, attempt to login
         if username and password:
             self.login(username, password)
+
+    ## sendRequest sends all requests to the server
+    # @param params parameters to the function being called,
+    #     should be urlencoded (eg. params = urllib.urlencode(args))
+    # @return dictionary object of server response 
+    def sendRequest(self, params):
+        params = urllib.urlencode(params)
+        response = urllib.urlopen(self.host, params)
+        try:
+            result = json.load(response)
+        except TypeError:
+            raise InvalidConnection
+        
+        result = stripUnicode(result)
+        
+        self.testForError(result)
+        return result
+
+    ## Test any returned object for an error
+    # @param self the object pointer
+    # @param obj the object which will be identified as an error or not
+    # @return Sugarcrm.GeneralException if 'obj' is an error.
+    # This function ought to be obsolete after creating classes which
+    #   handle all returned objects from the server
+    def testForError(self, obj):
+    	if type(obj) == type(str()):
+    		return obj
+        if obj.has_key("name"):
+            if self.quiet == False:
+                print "ERROR: "+obj["name"]+" : "+obj["description"]
+            raise GeneralException
 
     ## Login function to estabilsh connection with a server
     # @param username string of sugarcrm user
@@ -66,49 +102,30 @@ class Sugarcrm:
     def login(self, username, password):
         data = {'user_auth' : {'user_name' : username, 'password' : passencode(password)}}
         args = {'method': 'login', 'input_type': 'JSON', 'response_type' : 'JSON', 'rest_data' : data}
-        params = urllib.urlencode(args)
-        
-        x = self.sendRequest(params)
-        
+
         try:
-            print "ID: "+x["id"]
+            x = self.sendRequest(args)
+        except GeneralException:
+            raise InvalidLogin
+
+        try:
             self.id = x["id"]
         except KeyError:
             raise InvalidConnection
 
         # If all goes well we've successfully connected
         self.connected = 1
+            
+    ## get_user_id Returns the ID of the user who is logged into the server
+    # @return string of the user's id
+    def get_user_id(self):
+    	data = {'session' : self.id}
+    	args = {'method': 'get_user_id', 'input_type': 'JSON', 'response_type' : 'JSON', 'rest_data' : data}
+        result = self.sendRequest(args)
+        return result
 
-    ## sendRequest sends all requests to the server
-    # @param params parameters to the function being called, should be urlencoded (eg. params = urllib.urlencode(args))
-    # @return dictionary object of server response 
-    def sendRequest(self, params):
-        response = urllib.urlopen(self.host, params)
-        try:
-            x = json.load(response)
-        except TypeError:
-            raise InvalidConnection
-        
-        try:
-            self.testForError(x)
-        except GeneralException:
-            raise InvalidLogin
-        return x
-                
-    ## Test any returned object for an error
-    # @param self the object pointer
-    # @param obj the object which will be identified as an error or not
-    #
-    # @return Sugarcrm.GeneralException if 'obj' is an error.
-    # 
-    # This function ought to be obsolete after creating classes which
-    #   handle all returned objects from the server
-    #
-    def testForError(self, obj):
-        if obj.has_key("name"):
-            print "ERROR: "+obj["name"]+" : "+obj["description"]
-            raise GeneralException
-
+	
+	
 ## Creates md5 hash to send as a password
 # @param password string to be encoded
 # @return string md5-hex encoded string 
@@ -117,11 +134,19 @@ def passencode(password):
     result = encode.hexdigest()
     return result
 
+## Remove utf-8 encoding returned from JSON 
+# @param obj object which is supposedly in unicode
+# @return same object in ascii
+def stripUnicode(obj):
+    if isinstance(obj, unicode):
+        return str(obj)
+    if isinstance(obj, dict):
+        return dict( (str(key), stripUnicode(value)) for (key, value) in obj.items())
+ 
 if __name__ == "__main__":
     import sys
     if len(sys.argv) > 1:
         a = sys.argv[1]
         if a == "test":
             "you typed test!"
-
 
