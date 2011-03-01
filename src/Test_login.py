@@ -11,6 +11,7 @@ class TestLogin(unittest.TestCase):
 		response = sugarcrm.Sugarcrm(self.hostname, self.login, self.password)
 		self.assertIsNotNone(response)
 		self.assertEquals(1, response.connected)
+		self.assertIsNotNone(response.id)
 		
 if __name__ == '__main__':
     unittest.main()
