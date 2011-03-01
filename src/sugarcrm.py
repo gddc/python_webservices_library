@@ -49,12 +49,12 @@ class Sugarcrm:
         self.last_call = 0
         
         # Fake login to make sure the host is valid
-        try:
+        '''try:
             x = self.login("BLANK", "FAKE")
         except InvalidLogin:
             pass
         except ValueError:
-            raise InvalidConnection
+            raise InvalidConnection'''
 
         # If the username and password are set, attempt to login
         if username and password:
