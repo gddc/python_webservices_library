@@ -13,6 +13,13 @@ if S.id != 0:
     print "Login Successful!"
 
 s = S.get_user_id()
+print "ID: "+s
+
+try:
+ t = S.get_entries_count("Contacts")
+ print "TEAM: "+t
+except sugarcrm.GeneralException:
+ pass
 
 #data = {'session':x.id, 'module_name':'Accounts', 'query':"accounts.industry = 'Retail'", \
 #   'order_by':'', 'offset':'','select_fields':['id','name','sic_code'],'link_name_to_fields_array':[]}
@@ -20,4 +27,6 @@ s = S.get_user_id()
 
 #args = urllib.urlencode(args)
 #x.sendRequest(args)
-print "ID: "+s
+m = S.get_module_fields("Accounts")
+
+print m

@@ -51,6 +51,10 @@ class Sugarcrm:
         # The connection will print errors messages to stdout if false 
         self.quiet = True
 
+        ## @var debug
+        # 
+        self.debug = False
+        
         # Fake login to make sure the host is valid
         try:
             x = self.login("BLANK", "FAKE")
@@ -69,16 +73,19 @@ class Sugarcrm:
     # @param params parameters to the function being called,
     #     should be urlencoded (eg. params = urllib.urlencode(args))
     # @return dictionary object of server response 
-    def sendRequest(self, params):
-        params = urllib.urlencode(params)
+    def sendRequest(self, method, data):
+        args = {'method': method, 'input_type': 'JSON', 'response_type' : 'JSON', 'rest_data' : data}
+#        params = urllib.urlencode(args)
+        params = str(args)
+        print str(type(params))
         response = urllib.urlopen(self.host, params)
         try:
             result = json.load(response)
         except TypeError:
             raise InvalidConnection
-        
+
         result = stripUnicode(result)
-        
+
         self.testForError(result)
         return result
 
@@ -89,22 +96,21 @@ class Sugarcrm:
     # This function ought to be obsolete after creating classes which
     #   handle all returned objects from the server
     def testForError(self, obj):
-    	if type(obj) == type(str()):
-    		return obj
-        if obj.has_key("name"):
-            if self.quiet == False:
-                print "ERROR: "+obj["name"]+" : "+obj["description"]
-            raise GeneralException
+    	if isinstance(obj, dict):
+			if obj.has_key("name"):
+				if self.quiet == False:
+					print "ERROR: "+obj["name"]+" : "+obj["description"]+"\n"
+				raise GeneralException
+
 
     ## Login function to estabilsh connection with a server
     # @param username string of sugarcrm user
     # @param password plaintext string of the users password
     def login(self, username, password):
-        data = {'user_auth' : {'user_name' : username, 'password' : passencode(password)}}
-        args = {'method': 'login', 'input_type': 'JSON', 'response_type' : 'JSON', 'rest_data' : data}
+        args = {'user_auth' : {'user_name' : username, 'password' : passencode(password)}}
 
         try:
-            x = self.sendRequest(args)
+            x = self.sendRequest('login', args)
         except GeneralException:
             raise InvalidLogin
 
@@ -119,13 +125,43 @@ class Sugarcrm:
     ## get_user_id Returns the ID of the user who is logged into the server
     # @return string of the user's id
     def get_user_id(self):
-    	data = {'session' : self.id}
-    	args = {'method': 'get_user_id', 'input_type': 'JSON', 'response_type' : 'JSON', 'rest_data' : data}
-        result = self.sendRequest(args)
+    	args = {'session' : self.id}
+        result = self.sendRequest('get_user_id', args)
         return result
 
-	
-	
+    ## get_user_team_id
+    # Retrieves the ID of the default team of the user who is logged into the current session.
+    def get_user_team_id(self):
+        args = {'session':self.id}
+        result = self.sendRequest('get_user_team_id', args)
+        return result
+
+
+    ## get_module_fields Retrieves variable definitions for fields of the specified sugarbean
+    # @param module_name
+    # @param fields Optional list of fields
+    # @return 
+    def get_module_fields(self, module_name, fields = []):
+        args = {'session':self.id, 'module_name':module_name, 'fields':fields}
+        result = self.sendRequest('get_module_fields', args)
+        return result
+
+    def get_entries_count(self, module_name, query = "", deleted = False):
+    	args = {'session':self.id, 'module_name':module_name, 'query':query, 'deleted':{True:1,False:0}[deleted]}
+        result = self.sendRequest('get_entries_count', args)
+        return result
+
+
+
+    def seamless_login(self):
+        args = {'session':self.id, 'module_name':module_name, 'fields':fields}
+        return self.sendRequest('seamless_login', args)
+
+    def set_note_attachment(self, note):
+        args = {'session':self.id, 'module_name':module_name, 'fields':fields}
+        return self.sendRequest('set_note_attachement', args)
+
+
 ## Creates md5 hash to send as a password
 # @param password string to be encoded
 # @return string md5-hex encoded string 
@@ -142,7 +178,9 @@ def stripUnicode(obj):
         return str(obj)
     if isinstance(obj, dict):
         return dict( (str(key), stripUnicode(value)) for (key, value) in obj.items())
- 
+    if isinstance(obj, list):
+        return list( stripUnicode(x) for x in obj )
+
 if __name__ == "__main__":
     import sys
     if len(sys.argv) > 1:
