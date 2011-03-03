@@ -56,12 +56,12 @@ class Sugarcrm:
         self.debug = False
         
         # Fake login to make sure the host is valid
-        try:
+        '''try:
             x = self.login("BLANK", "FAKE")
         except InvalidLogin:
             pass
         except ValueError:
-            raise InvalidConnection
+            raise InvalidConnection'''
 
         self.quiet = False
 
