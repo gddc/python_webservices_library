@@ -15,6 +15,8 @@ if S.id != 0:
 s = S.get_user_id()
 print "ID: "+s
 
+#z = S.set_relationship('Accounts','blahblahblah','wdfjkslkdjf')
+
 try:
  t = S.get_entries_count("Contacts")
  print "TEAM: "+t

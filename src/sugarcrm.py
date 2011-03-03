@@ -161,6 +161,13 @@ class Sugarcrm:
         args = {'session':self.id, 'module_name':module_name, 'fields':fields}
         return self.sendRequest('set_note_attachement', args)
 
+    def set_relationship(self, module, accountId, contactId):
+        data = {'session' : self.id, 'module_name' : module, 'module_id' : accountId, 'link_field_name' : '','related_ids' : contactId}
+
+        x = self.sendRequest('set_relationship',data)
+
+
+
 
 ## Creates md5 hash to send as a password
 # @param password string to be encoded
