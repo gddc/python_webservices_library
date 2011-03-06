@@ -15,11 +15,14 @@ if S.id != 0:
 s = S.get_user_id()
 print "ID: "+s
 
+#f = S.get_module_fields("Contacts")
+#print f
+
 #z = S.set_relationship('Accounts','blahblahblah','wdfjkslkdjf')
 
 try:
  t = S.get_entries_count("Contacts")
- print "TEAM: "+t
+ print "TEAM: "+str(t)
 except sugarcrm.GeneralException:
  pass
 
@@ -29,6 +32,6 @@ except sugarcrm.GeneralException:
 
 #args = urllib.urlencode(args)
 #x.sendRequest(args)
-m = S.get_module_fields("Accounts")
+#m = S.get_module_fields("Accounts")
 
-print m
+#print m

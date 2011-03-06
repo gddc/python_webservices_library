@@ -56,12 +56,12 @@ class Sugarcrm:
         self.debug = False
         
         # Fake login to make sure the host is valid
-        '''try:
+        try:
             x = self.login("BLANK", "FAKE")
         except InvalidLogin:
             pass
         except ValueError:
-            raise InvalidConnection'''
+            raise InvalidConnection
 
         self.quiet = False
 
@@ -75,9 +75,9 @@ class Sugarcrm:
     # @return dictionary object of server response 
     def sendRequest(self, method, data):
         args = {'method': method, 'input_type': 'JSON', 'response_type' : 'JSON', 'rest_data' : data}
-#        params = urllib.urlencode(args)
-        params = str(args)
-        print str(type(params))
+        params = urllib.urlencode(args)
+#        params = str(args)
+#        print str(type(params))
         response = urllib.urlopen(self.host, params)
         try:
             result = json.load(response)
@@ -96,11 +96,11 @@ class Sugarcrm:
     # This function ought to be obsolete after creating classes which
     #   handle all returned objects from the server
     def testForError(self, obj):
-    	if isinstance(obj, dict):
-			if obj.has_key("name"):
-				if self.quiet == False:
-					print "ERROR: "+obj["name"]+" : "+obj["description"]+"\n"
-				raise GeneralException
+         if isinstance(obj, dict):
+           if obj.has_key("name"):
+               if self.quiet == False:
+                   print "ERROR: "+obj["name"]+" : "+obj["description"]+"\n"
+               raise GeneralException
 
 
     ## Login function to estabilsh connection with a server
@@ -142,19 +142,22 @@ class Sugarcrm:
     # @param fields Optional list of fields
     # @return 
     def get_module_fields(self, module_name, fields = []):
-        args = {'session':self.id, 'module_name':module_name, 'fields':fields}
+#        args = {'session':self.id, 'module_name':module_name, 'fields':fields}
+        args = [self.id, module_name, fields]
         result = self.sendRequest('get_module_fields', args)
         return result
 
     def get_entries_count(self, module_name, query = "", deleted = False):
-    	args = {'session':self.id, 'module_name':module_name, 'query':query, 'deleted':{True:1,False:0}[deleted]}
+#    	args = {'session':self.id, 'module_name':module_name, 'query':query, 'deleted':{True:1,False:0}[deleted]}
+        args = [self.id, module_name, query, {True:1,False:0}[deleted]]
         result = self.sendRequest('get_entries_count', args)
         return result
 
 
 
     def seamless_login(self):
-        args = {'session':self.id, 'module_name':module_name, 'fields':fields}
+#        args = {'session':self.id, 'module_name':module_name, 'fields':fields}
+        args = [self.id, module_name, fields]
         return self.sendRequest('seamless_login', args)
 
     def set_note_attachment(self, note):
@@ -162,8 +165,8 @@ class Sugarcrm:
         return self.sendRequest('set_note_attachement', args)
 
     def set_relationship(self, module, accountId, contactId):
-        data = {'session' : self.id, 'module_name' : module, 'module_id' : accountId, 'link_field_name' : '','related_ids' : contactId}
-
+#        data = {'session' : self.id, 'module_name' : module, 'module_id' : accountId, 'link_field_name' : '','related_ids' : contactId}
+        data = [self.id, module, accountId, '', contactId]
         x = self.sendRequest('set_relationship',data)
 
 
