@@ -75,8 +75,8 @@ class Sugarcrm:
     # @return dictionary object of server response 
     def sendRequest(self, method, data):
         args = {'method': method, 'input_type': 'JSON', 'response_type' : 'JSON', 'rest_data' : data}
-#        params = urllib.urlencode(args)
-        params = str(args)
+        params = urllib.urlencode(args)
+#        params = str(args)
         print str(type(params))
         response = urllib.urlopen(self.host, params)
         try:
@@ -84,7 +84,7 @@ class Sugarcrm:
         except TypeError:
             raise InvalidConnection
 
-        result = stripUnicode(result)
+#        result = stripUnicode(result)
 
         self.testForError(result)
         return result
@@ -151,7 +151,18 @@ class Sugarcrm:
         result = self.sendRequest('get_entries_count', args)
         return result
 
+    def set_entry(self, module_name, query=""):
+        args = {'session':self.id, 'module_name':module_name, 'name_value_list':query}
+        return self.sendRequest('set_entry', args)
 
+    def set_entries(self,module_name, query=""):
+        args = {'session':self.id, 'module_name':module_name, 'name_value_list':query}
+        return self.sendRequest('set_entries', args)
+
+    def logout():
+        args = {'session':self.id}
+        self.connected = 0
+		self.sendRequest('logout', args)
 
     def seamless_login(self):
         args = {'session':self.id, 'module_name':module_name, 'fields':fields}
