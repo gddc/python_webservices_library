@@ -75,13 +75,15 @@ class Sugarcrm:
     # @return dictionary object of server response 
     def sendRequest(self, method, data):
         args = {'method': method, 'input_type': 'JSON', 'response_type' : 'JSON', 'rest_data' : data}
-        print args
+#        print args
         params = urllib.urlencode(args)
 #        params = str(args)
 #        print str(type(params))
         response = urllib.urlopen(self.host, params)
+        response = response.read()
+        print response
         try:
-            result = json.load(response)
+            result = json.loads(response)
         except TypeError:
             raise InvalidConnection
             
@@ -165,6 +167,10 @@ class Sugarcrm:
 #        args = {'session':self.id, 'module_name':module_name, 'name_value_list':query}
         args = [self.id, module_name, query]
         return self.sendRequest('set_entries', args)
+
+    def get_entry_list(self, module_name, query, order_by, offset, select_fields, link_name_to_fields_array):
+        args = [self.id, module_name, query, order_by, offset, select_fields, link_name_to_fields_array]
+        return self.sendRequest('get_entry_list', args)
 
     def logout():
        args = [self.id]

@@ -12,8 +12,13 @@ if S.connected == 1:
 if S.id != 0:
     print "Login Successful!"
 
+retail = S.get_entry_list('Accounts',"accounts.industry = 'retail'", "", "", ['id','name','sic_code'],[])
 
-
+print "RETAIL:"
+x = retail.entry_list
+for i in x:
+    print i.id+','+i.name
+exit()
 
 s = S.get_user_id()
 print "ID: "+s
