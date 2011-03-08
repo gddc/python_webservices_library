@@ -45,7 +45,7 @@ class Sugarcrm:
 
         ## @var last_call
         # The results of the last function called
-        self.last_call = 0
+        self.last_call = None
 
         ## @var quiet
         # The connection will print errors messages to stdout if false 
@@ -176,6 +176,7 @@ class Sugarcrm:
        args = [self.id]
        self.sendRequest('logout', args)
        self.connected = 0
+	   self.last_call = None
 
     def seamless_login(self):
 #        args = {'session':self.id, 'module_name':module_name, 'fields':fields}
