@@ -4,7 +4,7 @@
 #   KSU capstone project
 #
 
-import urllib, hashlib, json
+import urllib, hashlib, json, sys
 
 class GeneralException(Exception): pass
 class InvalidConnection(Exception): pass
@@ -56,12 +56,12 @@ class Sugarcrm:
         self.debug = False
         
         # Fake login to make sure the host is valid
-        '''try:
+        try:
             x = self.login("BLANK", "FAKE")
         except InvalidLogin:
             pass
         except ValueError:
-            raise InvalidConnection'''
+            raise InvalidConnection
 
         self.quiet = False
 
@@ -75,16 +75,19 @@ class Sugarcrm:
     # @return dictionary object of server response 
     def sendRequest(self, method, data):
         args = {'method': method, 'input_type': 'JSON', 'response_type' : 'JSON', 'rest_data' : data}
+        print args
         params = urllib.urlencode(args)
 #        params = str(args)
-        print str(type(params))
+#        print str(type(params))
         response = urllib.urlopen(self.host, params)
         try:
             result = json.load(response)
         except TypeError:
             raise InvalidConnection
-
-#        result = stripUnicode(result)
+            
+        # check version of python, if lower than 2.7.2 strip unicode
+        if sys.version_info.major < 2 or (sys.version_info.major == 2 and sys.version_info.minor <= 7 and sys.version_info.micro < 2):
+            result = stripUnicode(result)
 
         self.testForError(result)
         return result
@@ -96,11 +99,11 @@ class Sugarcrm:
     # This function ought to be obsolete after creating classes which
     #   handle all returned objects from the server
     def testForError(self, obj):
-    	if isinstance(obj, dict):
-			if obj.has_key("name"):
-				if self.quiet == False:
-					print "ERROR: "+obj["name"]+" : "+obj["description"]+"\n"
-				raise GeneralException
+         if isinstance(obj, dict):
+           if obj.has_key("name"):
+               if self.quiet == False:
+                   print "ERROR: "+obj["name"]+" : "+obj["description"]+"\n"
+               raise GeneralException
 
 
     ## Login function to estabilsh connection with a server
@@ -125,14 +128,14 @@ class Sugarcrm:
     ## get_user_id Returns the ID of the user who is logged into the server
     # @return string of the user's id
     def get_user_id(self):
-    	args = {'session' : self.id}
+    	args = {"session":self.id}
         result = self.sendRequest('get_user_id', args)
         return result
 
     ## get_user_team_id
     # Retrieves the ID of the default team of the user who is logged into the current session.
     def get_user_team_id(self):
-        args = {'session':self.id}
+        args = [self.id]
         result = self.sendRequest('get_user_team_id', args)
         return result
 
@@ -142,39 +145,45 @@ class Sugarcrm:
     # @param fields Optional list of fields
     # @return 
     def get_module_fields(self, module_name, fields = []):
-        args = {'session':self.id, 'module_name':module_name, 'fields':fields}
+#        args = {'session':self.id, 'module_name':module_name, 'fields':fields}
+        args = [self.id, module_name, fields]
         result = self.sendRequest('get_module_fields', args)
         return result
 
     def get_entries_count(self, module_name, query = "", deleted = False):
-    	args = {'session':self.id, 'module_name':module_name, 'query':query, 'deleted':{True:1,False:0}[deleted]}
+#    	args = {'session':self.id, 'module_name':module_name, 'query':query, 'deleted':{True:1,False:0}[deleted]}
+        args = [self.id, module_name, query, {True:1,False:0}[deleted]]
         result = self.sendRequest('get_entries_count', args)
         return result
 
     def set_entry(self, module_name, query=""):
-        args = {'session':self.id, 'module_name':module_name, 'name_value_list':query}
+#        args = {'session':self.id, 'module_name':module_name, 'name_value_list':query}
+        args = [self.id, module_name, query]
         return self.sendRequest('set_entry', args)
 
     def set_entries(self,module_name, query=""):
-        args = {'session':self.id, 'module_name':module_name, 'name_value_list':query}
+#        args = {'session':self.id, 'module_name':module_name, 'name_value_list':query}
+        args = [self.id, module_name, query]
         return self.sendRequest('set_entries', args)
 
     def logout():
-        args = {'session':self.id}
-        self.connected = 0
-		self.sendRequest('logout', args)
+       args = [self.id]
+       self.sendRequest('logout', args)
+       self.connected = 0
 
     def seamless_login(self):
-        args = {'session':self.id, 'module_name':module_name, 'fields':fields}
+#        args = {'session':self.id, 'module_name':module_name, 'fields':fields}
+        args = [self.id, module_name, fields]
         return self.sendRequest('seamless_login', args)
 
     def set_note_attachment(self, note):
-        args = {'session':self.id, 'module_name':module_name, 'fields':fields}
+#        args = {'session':self.id, 'module_name':module_name, 'fields':fields}
+        args = [self.id, module_name, fields]
         return self.sendRequest('set_note_attachement', args)
 
     def set_relationship(self, module, accountId, contactId):
-        data = {'session' : self.id, 'module_name' : module, 'module_id' : accountId, 'link_field_name' : '','related_ids' : contactId}
-
+#        data = {'session' : self.id, 'module_name' : module, 'module_id' : accountId, 'link_field_name' : '','related_ids' : contactId}
+        data = [self.id, module, accountId, '', contactId]
         x = self.sendRequest('set_relationship',data)
 
 
