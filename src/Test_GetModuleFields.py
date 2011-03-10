@@ -10,7 +10,7 @@ class TestGetModuleFields(unittest.TestCase):
 				
 	def test_getModuleFields(self):
 		response = sugarcrm.Sugarcrm(self.hostname, self.login, self.password)
-		results = response.get_module_fields(module)
+		results = response.get_module_fields(self.module)
 		self.assertIsNotNone(results)
 		
 	
