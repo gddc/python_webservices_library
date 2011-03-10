@@ -4,7 +4,7 @@
 #   KSU capstone project
 #
 
-import urllib, hashlib, json
+import urllib, hashlib, json, sys
 
 class GeneralException(Exception): pass
 class InvalidConnection(Exception): pass
@@ -75,16 +75,21 @@ class Sugarcrm:
     # @return dictionary object of server response 
     def sendRequest(self, method, data):
         args = {'method': method, 'input_type': 'JSON', 'response_type' : 'JSON', 'rest_data' : data}
+#        print args
         params = urllib.urlencode(args)
 #        params = str(args)
 #        print str(type(params))
         response = urllib.urlopen(self.host, params)
+        response = response.read()
+        print response
         try:
-            result = json.load(response)
+            result = json.loads(response)
         except TypeError:
             raise InvalidConnection
-
-        result = stripUnicode(result)
+            
+        # check version of python, if lower than 2.7.2 strip unicode
+        if sys.version_info.major < 2 or (sys.version_info.major == 2 and sys.version_info.minor <= 7 and sys.version_info.micro < 2):
+            result = stripUnicode(result)
 
         self.testForError(result)
         return result
@@ -125,14 +130,14 @@ class Sugarcrm:
     ## get_user_id Returns the ID of the user who is logged into the server
     # @return string of the user's id
     def get_user_id(self):
-    	args = {'session' : self.id}
+    	args = {"session":self.id}
         result = self.sendRequest('get_user_id', args)
         return result
 
     ## get_user_team_id
     # Retrieves the ID of the default team of the user who is logged into the current session.
     def get_user_team_id(self):
-        args = {'session':self.id}
+        args = [self.id]
         result = self.sendRequest('get_user_team_id', args)
         return result
 
@@ -153,7 +158,24 @@ class Sugarcrm:
         result = self.sendRequest('get_entries_count', args)
         return result
 
+    def set_entry(self, module_name, query=""):
+#        args = {'session':self.id, 'module_name':module_name, 'name_value_list':query}
+        args = [self.id, module_name, query]
+        return self.sendRequest('set_entry', args)
 
+    def set_entries(self,module_name, query=""):
+#        args = {'session':self.id, 'module_name':module_name, 'name_value_list':query}
+        args = [self.id, module_name, query]
+        return self.sendRequest('set_entries', args)
+
+    def get_entry_list(self, module_name, query, order_by, offset, select_fields, link_name_to_fields_array):
+        args = [self.id, module_name, query, order_by, offset, select_fields, link_name_to_fields_array]
+        return self.sendRequest('get_entry_list', args)
+
+    def logout():
+       args = [self.id]
+       self.sendRequest('logout', args)
+       self.connected = 0
 
     def seamless_login(self):
 #        args = {'session':self.id, 'module_name':module_name, 'fields':fields}
@@ -161,7 +183,8 @@ class Sugarcrm:
         return self.sendRequest('seamless_login', args)
 
     def set_note_attachment(self, note):
-        args = {'session':self.id, 'module_name':module_name, 'fields':fields}
+#        args = {'session':self.id, 'module_name':module_name, 'fields':fields}
+        args = [self.id, module_name, fields]
         return self.sendRequest('set_note_attachement', args)
 
     def set_relationship(self, module, accountId, contactId):
