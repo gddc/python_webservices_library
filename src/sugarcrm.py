@@ -192,7 +192,7 @@ class Sugarcrm:
         data = [self.id, module, accountId, '', contactId]
         x = self.sendRequest('set_relationship',data)
 
-	def get_entry(self, module_name, id, select_fields, link_name_to_fields_array)
+	def get_entry(self, module_name, id, select_fields, link_name_to_fields_array):
 		data = [self.id, module_name, id, select_fields, link_name_to_fields_array]
 		return self.sendRequest('get_entry', data)
 
