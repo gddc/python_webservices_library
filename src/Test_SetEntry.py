@@ -10,11 +10,15 @@ class TestSetEntry(unittest.TestCase):
 	query = [{'name': 'first_name', 'value': 'Jim'},
 		{'name': 'last_name', 'value': 'Ball'},
 		{'name': 'title', 'value': 'CEO'}]
+		
+	linkName = [{'name': 'email_addresses', 'value': ['id', 'email_address']}]
 
 	def test_set_entry(self):
 		response = sugarcrm.Sugarcrm(self.hostname, self.login, self.password)
 		result = response.set_entry(self.module, self.query)
 		self.assertIsNotNone(result)
+		checkForEntry = response.get_entry(self.module, result.id, '', self.linkName)
+		self.assertIsNotNone(checkForEntry)
 		
 if __name__ == '__main__':
     unittest.main()
