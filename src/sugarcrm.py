@@ -52,7 +52,7 @@ class Sugarcrm:
         self.quiet = True
 
         ## @var debug
-        # 
+        # TODO: implement debug flag which will print entire traceback if set, else it will only state error and die.
         self.debug = False
         
         # Fake login to make sure the host is valid
@@ -69,21 +69,18 @@ class Sugarcrm:
         if username and password:
             self.login(username, password)
 
-    ## sendRequest sends all requests to the server
-    # @param params parameters to the function being called,
-    #     should be urlencoded (eg. params = urllib.urlencode(args))
-    # @return dictionary object of server response 
+    ## sendRequest
+    # sends all requests to the server, should not need to be called explicitly by the user, but 
+    #    rather by the other functions
+    # @param method String of the method name being called
+    # @param data parameters to the function being called, should be in a list sorted by order of items
+    # @return dictionary object of server response
     def sendRequest(self, method, data):
         args = {'method': method, 'input_type': 'JSON', 'response_type' : 'JSON', 'rest_data' : data}
-#        print args
         params = urllib.urlencode(args)
-#        params = str(args)
-#        print str(type(params))
         response = urllib.urlopen(self.host, params)
-        response = response.read()
-        print response
         try:
-            result = json.loads(response)
+            result = json.load(response)
         except TypeError:
             raise InvalidConnection
             
@@ -108,9 +105,10 @@ class Sugarcrm:
                raise GeneralException
 
 
-    ## Login function to estabilsh connection with a server
+    ## Login
+    # Estabilsh connection to a server
     # @param username string of sugarcrm user
-    # @param password plaintext string of the users password
+    # @param password plaintext string of the user's password
     def login(self, username, password):
         args = {'user_auth' : {'user_name' : username, 'password' : passencode(password)}}
 
@@ -127,7 +125,8 @@ class Sugarcrm:
         # If all goes well we've successfully connected
         self.connected = 1
             
-    ## get_user_id Returns the ID of the user who is logged into the server
+    ## get_user_id
+    # Returns the ID of the user who is logged into the server
     # @return string of the user's id
     def get_user_id(self):
     	args = {"session":self.id}
@@ -136,47 +135,130 @@ class Sugarcrm:
 
     ## get_user_team_id
     # Retrieves the ID of the default team of the user who is logged into the current session.
+    # @return string of user's team id
     def get_user_team_id(self):
         args = [self.id]
         result = self.sendRequest('get_user_team_id', args)
         return result
 
+    ## get_available_modules
+    # Retrieves the list of modules available to the current user logged into the system.
+    # @returns list of module names
+    def get_available_modules(self):
+        data = [self.id]
+        return self.sendRequest('get_available_modules', data)
 
-    ## get_module_fields Retrieves variable definitions for fields of the specified sugarbean
-    # @param module_name
+    ## get_module_fields
+    # Retrieves variable definitions (vardefs) for fields of the specified SugarBean.
+    # @param module_name which Module to request fields
     # @param fields Optional list of fields
-    # @return 
+    # @return list of fields
     def get_module_fields(self, module_name, fields = []):
-#        args = {'session':self.id, 'module_name':module_name, 'fields':fields}
         args = [self.id, module_name, fields]
         result = self.sendRequest('get_module_fields', args)
         return result
 
+    ## get_entries_count
+    # Retrieves the specified number of records in a module.
+    # @param module_name Module containing entries to count
+	# @param query Optional query to impose conditions on which entries are counted
+	# @param deleted Optional parameter to specify whether to count deleted entries
+	# @return integer count of number 
     def get_entries_count(self, module_name, query = "", deleted = False):
-#    	args = {'session':self.id, 'module_name':module_name, 'query':query, 'deleted':{True:1,False:0}[deleted]}
         args = [self.id, module_name, query, {True:1,False:0}[deleted]]
         result = self.sendRequest('get_entries_count', args)
         return result
 
-    def set_entry(self, module_name, query=""):
-#        args = {'session':self.id, 'module_name':module_name, 'name_value_list':query}
-        args = [self.id, module_name, query]
-        return self.sendRequest('set_entry', args)
+    ## get_entry
+    # Retrieves a single SugarBean based on ID.
+    # @param module_name The name of the module from which to retrieve records.
+    # @param id The SugarBean's ID
+    # @param select_fields optional list of fields to be returned
+    # @param link_name_to_fields_array A list of link names and the fields to be returned for each link name.
+    # @return A list of entries and list of relationships
+    def get_entry(self, module_name, id, select_fields = [], link_name_to_fields_array = []):
+        args = [self.id, module_name, id, select_fields, link_name_to_fields_array]
+        return self.sendRequest('get_entry', args)
 
-    def set_entries(self,module_name, query=""):
-#        args = {'session':self.id, 'module_name':module_name, 'name_value_list':query}
-        args = [self.id, module_name, query]
-        return self.sendRequest('set_entries', args)
+	## get_entries
+	# Retrieves a list of SugarBeans based on the specified IDs.
+    # @param module_name The name of the module from which to retrieve records.
+    # @param id The SugarBean's ID
+    # @param select_fields optional list of fields to be returned
+    # @param link_name_to_fields_array A list of link names and the fields to be returned for each link name.
+    # @return Array containing list of entries specified and a list of their link data
+    def get_entries(self, module_name, ids, select_fields, link_name_to_fields_array):
+        args = [self.id, module_name, select_fields, link_name_to_fields_array]
+        return self.sendRequest('get_entries', args)
 
-    def get_entry_list(self, module_name, query, order_by, offset, select_fields, link_name_to_fields_array):
+	## get_entry_list
+	# Retrieves a list of SugarBeans.
+    # @param module_name The name of the module from which to retrieve records.
+    # @param query The SQL WHERE clause without the word “where”.
+    # @param order_by The SQL ORDER BY clause without the phrase “order by”.
+    # @param offset The record offset from which to start.
+    # @param select_fields Optional Array of fields to include in result
+    # @param link_name_to_fields_array A list of link names and the fields to be returned for each link name.
+    # @param max_results The maximum number of results to return.
+	# @param deleted Set True to include deleted records
+	# @return [result_count, next_offset, entry_list, relationship_list] 
+    def get_entry_list(self, module_name, query ="", order_by ="", offset = 0, select_fields = [], link_name_to_fields_array = []):
         args = [self.id, module_name, query, order_by, offset, select_fields, link_name_to_fields_array]
         return self.sendRequest('get_entry_list', args)
 
-    def logout():
+    ## set_entry
+    # Creates or updates a SugarBean.
+    # @param module_name module being updated
+    # @param list of names and values to describe a new entry in module
+    def set_entry(self, module_name, name_value_list):
+        args = [self.id, module_name, name_value_list]
+        return self.sendRequest('set_entry', args)
+
+    ## set_entries
+    # Creates or updates a list of SugarBeans.
+    # @param module_name module being updated
+    # @param name_value_lists list of arrays referring to created/updated entries
+    def set_entries(self,module_name, name_value_lists):
+        args = [self.id, module_name, name_value_lists]
+        return self.sendRequest('set_entries', args)
+
+	## set_relationship
+	# Sets a single relationship between two SugarBeans.
+	# @param module_name The name of the module from which to retrieve records
+	# @param module_id The ID of sepcified module bean
+	# @param link_field_name The name of the field related to the other module.
+	# @param related_ids Array of related records
+    # @return number of entries created, failed and deleted
+    def set_relationship(self, module_name, module_id, link_field_name, related_ids)
+        data = [self.id, module_name, module_id, link_field_name, related_ids]
+        x = self.sendRequest('set_relationship',data)
+        return x
+
+	## set_relationships
+	# Sets multiple relationships between two SugarBeans.
+	# @param module_name The name of the module from which to retrieve records.
+	# @param module_ids The ID of sepcified module bean
+	# @param link_field_names The name of the field related to the other module.
+	# @param related_id Array of related records' IDs
+    # @return number of entries created, failed and deleted
+    def set_relationship(self, module_names, module_ids, link_field_names, related_id)
+        data = [self.id, module_name, module_id, link_field_name, related_ids]
+        x = self.sendRequest('set_relationship',data)
+        return x
+
+    ## get_server_info
+    # Returns server information such as version, flavor, and gmt_time.
+    # @return Sugar edition such as Enterprise, Professional, or Community Edition. The version number of the Sugar application that is running on the server. gmt_time The current GMT time on the server in Y-m-d H:i:s format.
+    def get_server_info(self):
+        return self.sendRequest('get_server_info','')
+
+    ## logout
+    # Logs out of the sugar user session
+    def logout(self):
        args = [self.id]
        self.sendRequest('logout', args)
        self.connected = 0
-	   self.last_call = None
+       self.last_call = None
 
     def seamless_login(self):
 #        args = {'session':self.id, 'module_name':module_name, 'fields':fields}
@@ -187,12 +269,6 @@ class Sugarcrm:
 #        args = {'session':self.id, 'module_name':module_name, 'fields':fields}
         args = [self.id, module_name, fields]
         return self.sendRequest('set_note_attachement', args)
-
-    def set_relationship(self, module, accountId, contactId):
-#        data = {'session' : self.id, 'module_name' : module, 'module_id' : accountId, 'link_field_name' : '','related_ids' : contactId}
-        data = [self.id, module, accountId, '', contactId]
-        x = self.sendRequest('set_relationship',data)
-
 
 
 

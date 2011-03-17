@@ -12,17 +12,35 @@ if S.connected == 1:
 if S.id != 0:
     print "Login Successful!"
 
+"""
+entry = S.set_entry('Accounts',[{'name':'name','value':'New Account'},{'name':'description', 'value':'NEW ACCOUNT FROM PYTHON!'}])
+
+print entry['id']
+
+
+exit()
+"""
+
 retail = S.get_entry_list('Accounts',"accounts.industry = 'retail'", "", "", ['id','name','sic_code'],[])
 
 print "RETAIL:"
-x = retail.entry_list
-for i in x:
-    print i.id+','+i.name
+x = retail['entry_list'][0]
+print x
+print ""
+for i,j in x['name_value_list']:
+    print i
+
+
+modules = S.get_available_modules()
+
+print modules
+
+
+
 exit()
 
 s = S.get_user_id()
 print "ID: "+s
-
 #f = S.get_module_fields("Contacts")
 #print f
 
