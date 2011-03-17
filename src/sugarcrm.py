@@ -270,7 +270,9 @@ class Sugarcrm:
         args = [self.id, module_name, fields]
         return self.sendRequest('set_note_attachement', args)
 
-
+	def get_entry(self, module_name, id, select_fields, link_name_to_fields_array):
+		data = [self.id, module_name, id, select_fields, link_name_to_fields_array]
+		return self.sendRequest('get_entry', data)
 
 ## Creates md5 hash to send as a password
 # @param password string to be encoded
