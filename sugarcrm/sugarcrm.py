@@ -194,8 +194,8 @@ class Sugarcrm:
 	## get_entry_list
 	# Retrieves a list of SugarBeans.
     # @param module_name The name of the module from which to retrieve records.
-    # @param query The SQL WHERE clause without the word “where”.
-    # @param order_by The SQL ORDER BY clause without the phrase “order by”.
+    # @param query The SQL WHERE clause without the word "where".
+    # @param order_by The SQL ORDER BY clause without the phrase "order by".
     # @param offset The record offset from which to start.
     # @param select_fields Optional Array of fields to include in result
     # @param link_name_to_fields_array A list of link names and the fields to be returned for each link name.
@@ -229,7 +229,7 @@ class Sugarcrm:
 	# @param link_field_name The name of the field related to the other module.
 	# @param related_ids Array of related records
     # @return number of entries created, failed and deleted
-    def set_relationship(self, module_name, module_id, link_field_name, related_ids)
+    def set_relationship(self, module_name, module_id, link_field_name, related_ids):
         data = [self.id, module_name, module_id, link_field_name, related_ids]
         x = self.sendRequest('set_relationship',data)
         return x
@@ -241,7 +241,7 @@ class Sugarcrm:
 	# @param link_field_names The name of the field related to the other module.
 	# @param related_id Array of related records' IDs
     # @return number of entries created, failed and deleted
-    def set_relationship(self, module_names, module_ids, link_field_names, related_id)
+    def set_relationships(self, module_names, module_ids, link_field_names, related_id):
         data = [self.id, module_name, module_id, link_field_name, related_ids]
         x = self.sendRequest('set_relationship',data)
         return x
@@ -273,6 +273,10 @@ class Sugarcrm:
 	def get_entry(self, module_name, id, select_fields, link_name_to_fields_array):
 		data = [self.id, module_name, id, select_fields, link_name_to_fields_array]
 		return self.sendRequest('get_entry', data)
+
+    def module(self, module_name):
+    	Sugarmodule
+
 
 ## Creates md5 hash to send as a password
 # @param password string to be encoded

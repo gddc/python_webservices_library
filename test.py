@@ -1,10 +1,12 @@
 
-import sugarcrm, urllib
+import urllib
+
+from sugarcrm import *
 
 print "hello"
 
 #x = sugarcrm.Sugarcrm("http://ruttanvm.cs.kent.edu:4080/service/v2/rest.php")
-S = sugarcrm.Sugarcrm("http://ruttanvm.cs.kent.edu:4080/akubera/service/v2/rest.php", "admin", "admin")
+S = Sugarcrm("http://ruttanvm.cs.kent.edu:4080/akubera/service/v2/rest.php", "admin", "admin")
 
 if S.connected == 1:
     print "Connection Successful!"
@@ -16,7 +18,6 @@ if S.id != 0:
 entry = S.set_entry('Accounts',[{'name':'name','value':'New Account'},{'name':'description', 'value':'NEW ACCOUNT FROM PYTHON!'}])
 
 print entry['id']
-
 
 exit()
 """

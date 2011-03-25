@@ -4,8 +4,6 @@
 #   KSU capstone project
 #
 
-import pprint
-
 ## SugarEntryList
 #	takes response from server and creates a nice python data structure
 #
