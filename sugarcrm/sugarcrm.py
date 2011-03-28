@@ -5,6 +5,7 @@
 #
 
 import urllib, hashlib, json, sys
+from sugar_error import *
 
 ## Sugarcrm main interface class
 #
