@@ -85,7 +85,7 @@ class Sugarcrm:
             raise InvalidConnection
             
         # check version of python, if lower than 2.7.2 strip unicode
-        if sys.version_info.major < 2 or (sys.version_info.major == 2 and sys.version_info.minor <= 7 and sys.version_info.micro < 2):
+        if sys.version_info[0] < 2 or (sys.version_info[0] == 2 and (sys.version_info[1] <= 7 or (sys.version_info[1] == 7 and sys.version_info[2] < 2))):
             result = stripUnicode(result)
 
         self.testForError(result)

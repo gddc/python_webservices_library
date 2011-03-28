@@ -5,7 +5,7 @@
 #
 
 import pprint
-import SugarBean
+from sugarbean import SugarBean
 
 ## SugarEntryList
 #	takes response from server and creates a nice python data structure

@@ -1,12 +1,8 @@
 
-import urllib
-
-from sugarcrm import *
-
-print "hello"
+import sugarcrm
 
 #x = sugarcrm.Sugarcrm("http://ruttanvm.cs.kent.edu:4080/service/v2/rest.php")
-S = Sugarcrm("http://ruttanvm.cs.kent.edu:4080/akubera/service/v2/rest.php", "admin", "admin")
+S = sugarcrm.Sugarcrm("http://ruttanvm.cs.kent.edu:4080/akubera/service/v2/rest.php", "admin", "admin")
 
 if S.connected == 1:
     print "Connection Successful!"
@@ -28,13 +24,13 @@ print "RETAIL:"
 x = retail['entry_list'][0]
 print x
 print ""
-for i,j in x['name_value_list']:
-    print i
-
-
+for i in x['name_value_list']:
+   print i
+print ""
 modules = S.get_available_modules()
 
-print modules
+for m in modules["modules"]:
+    print m 
 
 
 
@@ -62,3 +58,4 @@ except sugarcrm.GeneralException:
 #m = S.get_module_fields("Accounts")
 
 #print m
+
