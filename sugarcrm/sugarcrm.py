@@ -6,10 +6,6 @@
 
 import urllib, hashlib, json, sys
 
-class GeneralException(Exception): pass
-class InvalidConnection(Exception): pass
-class InvalidLogin(Exception): pass
-
 ## Sugarcrm main interface class
 #
 # This class is what is used to connect to and interact with the sugarcrm framework
@@ -78,7 +74,7 @@ class Sugarcrm:
     def sendRequest(self, method, data):
         args = {'method': method, 'input_type': 'JSON', 'response_type' : 'JSON', 'rest_data' : data}
         params = urllib.urlencode(args)
-        response = urllib.urlopen(self.host, params)
+        response = urllib.urlopen(self.host, params)	
         try:
             result = json.load(response)
         except TypeError:
