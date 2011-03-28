@@ -17,8 +17,8 @@ class SugarEntryList:
     #  @param data server response to be parsed
     def __init__(self, data):
         self.data = []
-    	for i in data['entry_list']:
-			self.data.append(sugarbean.SugarBean(i))
+        for i in data['entry_list']:
+            self.data.append(SugarBean(i))
 
     def __iter__(self):
     	return self.data.__iter__()
