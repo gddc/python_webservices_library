@@ -243,6 +243,20 @@ class Sugarcrm:
         x = self.sendRequest('set_relationship',data)
         return x
 
+    ## get_relationships
+    # Retrieves a collection of beans that are related to the specified bean and, optionally, returns relationship data.
+    # @param module The name of the module from which to retrieve records.
+    # @param module_id The ID of the specified module bean.
+    # @param link_field_name The relationship name of the linked field from which to return records.
+    # @param related_module The portion of the WHERE clause from the SQL statement used to find the related items.
+    # @param related_feilds The related fields to be returned.
+    # @param related_module_link For every related bean returned, specify link field names to field information.
+    # @param deleted To exclude deleted records.
+    # @return records of entry list, and relationship list
+    def get_relationships(self, module, module_id, link_field_name, related_module, related_fields = [], related_module_link = [], delete = False):
+        args = [self.id, module, module_id, link_field_name, related_module, related_fields, related_module_link, {True:1, False:0}[delete]]
+        x = self.sendRequest('get_relationships', args)
+        return x
 
     ## get_server_info
     # Returns server information such as version, flavor, and gmt_time.
