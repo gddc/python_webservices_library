@@ -10,6 +10,10 @@ if S.connected == 1:
 if S.id != 0:
     print "Login Successful!"
 
+m = S.get_module_fields('Accounts')
+
+print m
+
 """
 entry = S.set_entry('Accounts',[{'name':'name','value':'New Account'},{'name':'description', 'value':'NEW ACCOUNT FROM PYTHON!'}])
 

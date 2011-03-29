@@ -219,29 +219,30 @@ class Sugarcrm:
         args = [self.id, module_name, name_value_lists]
         return self.sendRequest('set_entries', args)
 
-	## set_relationship
-	# Sets a single relationship between two SugarBeans.
-	# @param module_name The name of the module from which to retrieve records
-	# @param module_id The ID of sepcified module bean
-	# @param link_field_name The name of the field related to the other module.
-	# @param related_ids Array of related records
+    ## set_relationship
+    # Sets a single relationship between two SugarBeans.
+    # @param module_name The name of the module from which to retrieve records
+    # @param module_id The ID of sepcified module bean
+    # @param link_field_name The name of the field related to the other module.
+    # @param related_ids Array of related records
     # @return number of entries created, failed and deleted
     def set_relationship(self, module_name, module_id, link_field_name, related_ids):
         data = [self.id, module_name, module_id, link_field_name, related_ids]
         x = self.sendRequest('set_relationship',data)
         return x
 
-	## set_relationships
-	# Sets multiple relationships between two SugarBeans.
-	# @param module_name The name of the module from which to retrieve records.
-	# @param module_ids The ID of sepcified module bean
-	# @param link_field_names The name of the field related to the other module.
-	# @param related_id Array of related records' IDs
+    ## set_relationships
+    # Sets multiple relationships between two SugarBeans.
+    # @param module_name The name of the module from which to retrieve records.
+    # @param module_ids The ID of sepcified module bean
+    # @param link_field_names The name of the field related to the other module.
+    # @param related_id Array of related records' IDs
     # @return number of entries created, failed and deleted
     def set_relationships(self, module_names, module_ids, link_field_names, related_id):
         data = [self.id, module_name, module_id, link_field_name, related_ids]
         x = self.sendRequest('set_relationship',data)
         return x
+
 
     ## get_server_info
     # Returns server information such as version, flavor, and gmt_time.
@@ -267,12 +268,59 @@ class Sugarcrm:
         args = [self.id, module_name, fields]
         return self.sendRequest('set_note_attachement', args)
 
-	def get_entry(self, module_name, id, select_fields, link_name_to_fields_array):
-		data = [self.id, module_name, id, select_fields, link_name_to_fields_array]
-		return self.sendRequest('get_entry', data)
+    ## get_note_attachment
+    #Retrieves an attachment from a note.
+    #@param session The ID of the session
+    #@param id The id of the note
+    #@return The id of the note
+    # containing the attachment, the file name of the attachment, the
+    # binary contents of the file, the id of the module to which this note
+    # is releated, the name of the module to which this note is related.
+    def get_note_attachment(self, id):
+        args = [self.id, id]
+        result = self.sendRequest('get_note_attachment', args)
+        return result
+
+    ##set_document_revision
+    #Sets a new revision for a document
+    #@param session The ID of the session
+    #@param document_revision The document ID, document name,
+    # the revision number, the file name of the attachment,
+    # the binary contents of the file
+    #@param id The document revision ID
+    #@return The ID of the document revision
+    def set_document_revision(self, document_revision, id):
+        args = [self.id, document_revision, id]
+        result = self.sendRequest('set_document_revision', args)
+        return result
+
+    ##get_document_revision
+    #Allows an authenticated user with the appropriate permission to
+    #download a document.
+    #@param id The ID of the revised document
+    #@return The ID of the document revision containing the
+    #attachment, The name of the revised document, the revision value,
+    #the file name of the attachment, the binary contents of the file
+    def get_document_revision(self, id):
+        args =[self.id, id]
+        result =self.sendRequest('get_document_revision', args)
+        return result
+    
+    ##search_by_module
+    #Returns the ID, module_name, and fields for the specified modules
+    #as specified in the search string.
+    #@param search_string The string to search for
+    #@param modules The modules to query
+    #@param offset The specified offset in the query
+    #@param max_results The maximum number of records to return
+    #@return The records returned by the search results
+    def search_by_module(self, search_string, modules, offset, max_result):
+        args =[self.id, search_string, modules, modules, offset, max_result]
+        result =self.sendRequest('search_by_module', args)
+        return result
 
     def module(self, module_name):
-    	Sugarmodule
+        return Sugarmodule(module_name)
 
 
 ## Creates md5 hash to send as a password
@@ -295,9 +343,5 @@ def stripUnicode(obj):
         return list( stripUnicode(x) for x in obj )
 
 if __name__ == "__main__":
-    import sys
-    if len(sys.argv) > 1:
-        a = sys.argv[1]
-        if a == "test":
-            "you typed test!"
+    pass
 

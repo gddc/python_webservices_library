@@ -1,4 +1,5 @@
-import sugarcrm
+#import ..sugarcrm
+from .. import sugarcrm
 import unittest
 
 class TestLogin(unittest.TestCase):
