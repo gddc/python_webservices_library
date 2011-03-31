@@ -356,6 +356,21 @@ def stripUnicode(obj):
     if isinstance(obj, list):
         return list( stripUnicode(x) for x in obj )
 
+def toNameValueList(obj):
+	if isinstance(obj, dict):
+		return list( {"name" : name, "value" : value} for (name, value) in obj.items() )
+
+def fromNameValueList(obj):
+	#might want to make this a error instead of returning none
+	if not isinstance(obj, list):
+		return None
+
+	result = {}
+
+	for nvpair in obj:
+		result[nvpair["name"]] = nvpair["value"]
+	return result
+
 if __name__ == "__main__":
     pass
 

@@ -31,10 +31,3 @@ choice = raw_input(in_str)
 
 if (choice == ('yes' or 'y')):
 	print results
-
-
-
-
-
-
-	

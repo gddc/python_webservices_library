@@ -37,4 +37,3 @@ class Sugarmodule:
     def get_entries_where(self, query, fields = []):
     	result = self.connection.get_entry_list(self.name,query, "", "", fields)
     	return sugarentrylist.SugarEntryList(result)
-
