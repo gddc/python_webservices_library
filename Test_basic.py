@@ -45,7 +45,7 @@ results = session.get_module_fields(module)
 
 # Asks user if they would like to view the fields in module, stored in in_str
 print ""
-mod_field = "Would you like to see all of the fields in the "+module+" module? "
+mod_field = "Would you like to see all of the fields in the "+module+" module? yes/no "
 choice = raw_input(mod_field)
 
 # Simple yes no if statement
