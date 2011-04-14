@@ -332,6 +332,17 @@ class Sugarcrm:
         args =[self.id, search_string, modules, modules, offset, max_result]
         result =self.sendRequest('search_by_module', args)
         return result
+		
+		
+	##get_report_entries
+	#Retrieves a list of report entries based on specified report IDs.
+	#@param ids An array of ids used to get a list of report entries
+	#@param select_fields Optional, gets reports from specific fields
+	#@return The list of report entries is returned
+	def get_report_entries(self, ids = [], select_fields):
+		args =[self.id, ids, select_fields]
+		result = self.sendRequest('get_report_entries', args)
+		return result
 
     def module(self, module_name):
         return Sugarmodule(module_name)
