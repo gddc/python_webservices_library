@@ -16,8 +16,12 @@ class SugarEntryList:
     #  @param self the object pointer
     #  @param data server response to be parsed
     def __init__(self, data):
+        try:
+            d = data['entry_list']
+        except KeyError:
+            d = data
         self.data = []
-        for i in data['entry_list']:
+        for i in d:
             self.data.append(SugarBean(i))
 
     def __iter__(self):
@@ -25,3 +29,13 @@ class SugarEntryList:
     	
     def next(self):
         return self.data.next()
+
+    def __str__(self):
+        result = '['
+        for bean in self.data:
+            result += str(bean)+", "
+        result += ']'
+        return result
+        
+    def __getitem__(self, i):
+        pass

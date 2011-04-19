@@ -12,7 +12,10 @@ if S.id != 0:
 
 m = S.get_module_fields('Accounts')
 
-print m
+s = "module_fields"
+for i in m[s]: print i,m[s][i]
+
+exit()
 
 """
 entry = S.set_entry('Accounts',[{'name':'name','value':'New Account'},{'name':'description', 'value':'NEW ACCOUNT FROM PYTHON!'}])
