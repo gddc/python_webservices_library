@@ -1,18 +1,19 @@
-#import ..sugarcrm
+
+
 import sugarcrm
 import unittest
 
-class TestLogin(unittest.TestCase):
-	
+class TestGetUserId(unittest.TestCase):
+
 	hostname = "http://ruttanvm.cs.kent.edu:4080/service/v2/rest.php"
 	login = "class"
 	password = "class123"
-	
-	def test_login(self):
+
+	def test_getuserid(self):
 		response = sugarcrm.Sugarcrm(self.hostname, self.login, self.password)
-		self.assertIsNotNone(response)
-		self.assertEquals(1, response.connected)
-		self.assertIsNotNone(response.id)
-		
+		results = response.get_user_id()
+		self.assertIsNotNone(results)
+		print results
+
 if __name__ == '__main__':
     unittest.main()
