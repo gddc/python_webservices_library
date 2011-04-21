@@ -20,6 +20,9 @@ class SugarEntryList:
             d = data['entry_list']
         except KeyError:
             d = data
+            
+        ## self.data
+        # 'private' list of the sugarbeans 
         self.data = []
         for i in d:
             self.data.append(SugarBean(i))
@@ -38,4 +41,7 @@ class SugarEntryList:
         return result
         
     def __getitem__(self, i):
-        pass
+        return self.data[i]
+        
+    def __getattr__(self, name):
+        print name

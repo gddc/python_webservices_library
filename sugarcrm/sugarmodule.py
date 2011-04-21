@@ -4,7 +4,7 @@
 #   KSU capstone project
 #
 
-import sugarentrylist
+from sugarentrylist import SugarEntryList
 import sugarbean
 
 ## Sugarmodule
@@ -12,8 +12,8 @@ import sugarbean
 #    a sugarcrm module.
 class Sugarmodule:
 
-	## Sugarmodule constructor
-	# @param sugarconnection A sugarcrm connection
+    ## Sugarmodule constructor
+    # @param sugarconnection A sugarcrm connection
     # @param module_name string of the correct module name
     # @return object encapsulating various data connections
     def __init__(self, sugarconnection, module_name):
@@ -21,28 +21,31 @@ class Sugarmodule:
 			raise GeneralException()
 
         self.connection = sugarconnection
-		
+
         print "Creating module: "+module_name
 
         self._cachedFields = sugarconnection.get_module_fields(module_name)['module_fields']
+
+        for field_name in self._cachedFields:
+            self.__dict__["find_by_"+field_name] = lambda q, n=field_name: self.get_entries_where("%s.%s = '%s' " % (self.name.lower(), n.lower(), q))
+
         self.name = module_name
         self.prev_get_entries = {}
-        
+
     def get_entry_with_id(self, id, fields = [], link_name_to_fields_array = []):
         raw_bean = self.connection.get_entry(self.name, id, fields, link_name_to_fields_array)
         print sugarbean.SugarBean(raw_bean)
-        
+
     def get_entries(self, ids, fields = [], link_name_to_fields_array = []):
         raw_bean_list = self.connection.get_entries(self.name, ids, fields, link_name_to_fields_array)
         return sugarentrylist.SugarEntryList(raw_bean_list)
 
     def get_entries_where(self, query, fields = [], offset = 0):
-        result = self.connection.get_entry_list(self.name,query, "", "", fields)
+        result = self.connection.get_entry_list( self.name, query, "", "", fields)
         self.prev_get_entries['next_offset'] = result['next_offset']
-        print result
         self.prev_get_entries['query'] = query
         self.prev_get_entries['fields'] = fields
-        return sugarentrylist.SugarEntryList(result)
+        return SugarEntryList(result)
 
     def get_fields(self):
         if self._cachedFields:
@@ -56,8 +59,8 @@ class Sugarmodule:
         return result
         
     def get_all_entries_where(self, query = '', fields = []):
-        offset = 0
+        result = self.get_entries_where(query, fields)
         while True:
-            self.get_fields()
-            if offset == 0: break
+            result.data.extend(self.get_next().data)
+            if not self.prev_get_entries['next_offset']: break
         return result

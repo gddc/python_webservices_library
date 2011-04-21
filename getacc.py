@@ -4,23 +4,19 @@ import sugarcrm
 
 S = sugarcrm.Sugarcrm("http://ruttanvm.cs.kent.edu:4080/akubera/service/v2/rest.php", "admin", "admin")
 
-a = S.get_module_fields('Accounts')
-
 accounts = sugarcrm.Sugarmodule(S, 'Accounts')
 
-retail = accounts.get_entries_where('accounts.industry = "retail"')
-print accounts.prev_get_entries['next_offset']
-raw_input()
-retail =  accounts.get_next()
-print accounts.prev_get_entries['next_offset']
+for f in sugarcrm.Sugarmodule(S, 'Contacts').get_fields():
+    print f
 
-retail =  accounts.get_next()
-print accounts.prev_get_entries['next_offset']
+print "-"*30
+r = accounts.find_by_industry('retail')
+for i in r:
+    print i.name
 
-retail =  accounts.get_next()
-print accounts.prev_get_entries['next_offset']
-	
 exit()
+
+
 
 industry = raw_input("Input Industry Name: ")
 

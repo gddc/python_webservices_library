@@ -275,62 +275,61 @@ class Sugarcrm:
         return self.sendRequest('set_note_attachement', args)
 
     ## get_note_attachment
-    #Retrieves an attachment from a note.
-    #@param session The ID of the session
-    #@param id The id of the note
-    #@return The id of the note
-    # containing the attachment, the file name of the attachment, the
-    # binary contents of the file, the id of the module to which this note
-    # is releated, the name of the module to which this note is related.
+    # Retrieves an attachment from a note.
+    # @param session The ID of the session
+    # @param id The id of the note
+    # @return The id of the note containing the attachment, the file name of the attachment, the
+    #   binary contents of the file, the id of the module to which this note
+    #   is releated, the name of the module to which this note is related.
     def get_note_attachment(self, id):
         args = [self.id, id]
         result = self.sendRequest('get_note_attachment', args)
         return result
 
-    ##set_document_revision
-    #Sets a new revision for a document
-    #@param session The ID of the session
-    #@param document_revision The document ID, document name,
-    # the revision number, the file name of the attachment,
-    # the binary contents of the file
-    #@param id The document revision ID
-    #@return The ID of the document revision
+    ## set_document_revision
+    # Sets a new revision for a document
+    # @param session The ID of the session
+    # @param document_revision The document ID, document name,
+    #   the revision number, the file name of the attachment,
+    #   the binary contents of the file
+    # @param id The document revision ID
+    # @return The ID of the document revision
     def set_document_revision(self, document_revision, id):
         args = [self.id, document_revision, id]
         result = self.sendRequest('set_document_revision', args)
         return result
 
-    ##get_document_revision
-    #Allows an authenticated user with the appropriate permission to
-    #download a document.
-    #@param id The ID of the revised document
-    #@return The ID of the document revision containing the
-    #attachment, The name of the revised document, the revision value,
-    #the file name of the attachment, the binary contents of the file
+    ## get_document_revision
+    # Allows an authenticated user with the appropriate permission to
+    # download a document.
+    # @param id The ID of the revised document
+    # @return The ID of the document revision containing the
+    # attachment, The name of the revised document, the revision value,
+    # the file name of the attachment, the binary contents of the file
     def get_document_revision(self, id):
         args =[self.id, id]
         result =self.sendRequest('get_document_revision', args)
         return result
     
-    ##search_by_module
-    #Returns the ID, module_name, and fields for the specified modules
-    #as specified in the search string.
-    #@param search_string The string to search for
-    #@param modules The modules to query
-    #@param offset The specified offset in the query
-    #@param max_results The maximum number of records to return
-    #@return The records returned by the search results
+    ## search_by_module
+    # Returns the ID, module_name, and fields for the specified modules
+    # as specified in the search string.
+    # @param search_string The string to search for
+    # @param modules The modules to query
+    # @param offset The specified offset in the query
+    # @param max_results The maximum number of records to return
+    # @return The records returned by the search results
     def search_by_module(self, search_string, modules, offset, max_result):
         args =[self.id, search_string, modules, modules, offset, max_result]
         result =self.sendRequest('search_by_module', args)
         return result
 		
 		
-	##get_report_entries
-	#Retrieves a list of report entries based on specified report IDs.
-	#@param ids An array of ids used to get a list of report entries
-	#@param select_fields Optional, gets reports from specific fields
-	#@return The list of report entries is returned
+	## get_report_entries
+	# Retrieves a list of report entries based on specified report IDs.
+	# @param ids An array of ids used to get a list of report entries
+	# @param select_fields Optional, gets reports from specific fields
+	# @return The list of report entries is returned
 	def get_report_entries(self, ids, select_fields = []):
 		args = [self.id, ids, select_fields]
 		result = self.sendRequest('get_report_entries', args)
