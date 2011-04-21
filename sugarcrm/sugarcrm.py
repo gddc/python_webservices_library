@@ -89,7 +89,7 @@ class Sugarcrm:
          if isinstance(obj, dict):
            if obj.has_key("name"):
                if self.quiet == False:
-                   print "ERROR: "+obj["name"]+" : "+obj["description"]+"\n"
+                   print "ERROR:",obj["name"],":",obj["description"],"\n"
                raise GeneralException
 
 
