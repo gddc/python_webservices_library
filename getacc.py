@@ -4,13 +4,17 @@ import sugarcrm
 
 S = sugarcrm.Sugarcrm("http://ruttanvm.cs.kent.edu:4080/akubera/service/v2/rest.php", "admin", "admin")
 
-accounts = sugarcrm.Sugarmodule(S, 'Accounts')
+accounts = S.module('Accounts')
 
-for f in sugarcrm.Sugarmodule(S, 'Contacts').get_fields():
+fields = accounts.get_fields()
+
+for field in fields:
     print f
 
 print "-"*30
+
 r = accounts.find_by_industry('retail')
+
 for i in r:
     print i.name
 
@@ -30,4 +34,8 @@ for i in l:
 #print retail
 
 #print type(a)
+
+sugarcrm.Sugarmodule(S, 'Accounts')
+for f in sugarcrm.Sugarmodule(S, 'Contacts').get_fields():
+    print f
 
