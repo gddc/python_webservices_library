@@ -5,7 +5,7 @@
 #
 
 from sugarentrylist import SugarEntryList
-import sugarbean
+from sugarbean import SugarBean
 
 ## Sugarmodule
 #  Abstract class which has ability to access and modify all entries in
@@ -22,19 +22,26 @@ class Sugarmodule:
 
         self.connection = sugarconnection
 
-        print "Creating module: "+module_name
+#        print "Creating module: "+module_name
 
-        self._cachedFields = sugarconnection.get_module_fields(module_name)['module_fields']
+        m_fields = sugarconnection.get_module_fields(module_name)
+        self._cachedFields = m_fields['module_fields']
 
         for field_name in self._cachedFields:
             self.__dict__["find_by_"+field_name] = lambda q, n=field_name: self.get_entries_where("%s.%s = '%s' " % (self.name.lower(), n.lower(), q))
+
+        self.relationships = m_fields['link_fields'].copy()
+
+#        print "LINK_NAMES:", type(m_fields['link_fields'])
+        for link_name,i in m_fields['link_fields'].iteritems():
+            print link_name,i
 
         self.name = module_name
         self.prev_get_entries = {}
 
     def get_entry_with_id(self, id, fields = [], link_name_to_fields_array = []):
         raw_bean = self.connection.get_entry(self.name, id, fields, link_name_to_fields_array)
-        print sugarbean.SugarBean(raw_bean)
+        print SugarBean(raw_bean)
 
     def get_entries(self, ids, fields = [], link_name_to_fields_array = []):
         raw_bean_list = self.connection.get_entries(self.name, ids, fields, link_name_to_fields_array)
@@ -53,14 +60,32 @@ class Sugarmodule:
         fields = self.sugarconnection.get_module_fields(self.name)
         self._cachedFields = fields
         return fields
-        
+
     def get_next(self):
         result = self.get_entries_where(self.prev_get_entries['query'], self.prev_get_entries['fields'], self.prev_get_entries['next_offset'])
         return result
-        
+
     def get_all_entries_where(self, query = '', fields = []):
         result = self.get_entries_where(query, fields)
         while True:
             result.data.extend(self.get_next().data)
             if not self.prev_get_entries['next_offset']: break
         return result
+
+    def get_relationships(self, bean, module, query = '', fields = []):
+        if isinstance(bean, SugarBean): id = bean.id
+        else: id = str(bean)
+        link_name = ''
+        if isinstance(module, Sugarmodule):
+            for i,j in self.relationships.iteritems():
+                if j['module'] == module.name: link_name = j['name']; break
+        else: link_name = str(module).lower()
+
+        if not link_name:
+            raise InvalidRelationship
+
+#  get_relationships(module, module_id, link_field_name, related_module = '', related_module_query = '', related_fields = [], related_module_link = [], delete = False):
+        result = self.connection.get_relationships(module = self.name, module_id = id, link_field_name = link_name, related_module_query = fields)
+
+        print "result:",result
+        return SugarEntryList(result)

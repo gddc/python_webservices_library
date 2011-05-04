@@ -10,38 +10,23 @@ from sugarbean import SugarBean
 ## SugarEntryList
 #	takes response from server and creates a nice python data structure
 #
-class SugarEntryList:
+class SugarEntryList (list):
     
     ## SugarEntryList Constructor
     #  @param self the object pointer
     #  @param data server response to be parsed
     def __init__(self, data):
+        if not isinstance(data,dict): return
         try:
             d = data['entry_list']
         except KeyError:
             d = data
-            
-        ## self.data
-        # 'private' list of the sugarbeans 
-        self.data = []
-        for i in d:
-            self.data.append(SugarBean(i))
 
-    def __iter__(self):
-    	return self.data.__iter__()
-    	
-    def next(self):
-        return self.data.next()
+        for i in d:
+            self.append(SugarBean(i))
 
     def __str__(self):
-        result = '['
-        for bean in self.data:
-            result += str(bean)+", "
-        result += ']'
-        return result
+        result = [str(bean) for bean in self]
+        return str(result)
         
-    def __getitem__(self, i):
-        return self.data[i]
-        
-    def __getattr__(self, name):
-        print name
+    

@@ -67,13 +67,17 @@ class Sugarcrm:
         args = {'method': method, 'input_type': 'JSON', 'response_type' : 'JSON', 'rest_data' : data}
         params = urllib.urlencode(args)
         response = urllib.urlopen(self.host, params)
+        response = response.read()
         try:
-            result = json.load(response)
+            result = json.loads(response)
         except TypeError:
+            raise InvalidConnection
+        except ValueError:
+            print "FAILED",response
             raise InvalidConnection
 
         # check version of python, if lower than 2.7.2 strip unicode
-        if sys.version_info[0] < 2 or (sys.version_info[0] == 2 and (sys.version_info[1] <= 7 or (sys.version_info[1] == 7 and sys.version_info[2] < 2))):
+        if sys.version_info < (2, 7, 2):
             result = stripUnicode(result)
 
         self.testForError(result)
@@ -245,8 +249,9 @@ class Sugarcrm:
     # @param related_module_link For every related bean returned, specify link field names to field information.
     # @param deleted To exclude deleted records.
     # @return records of entry list, and relationship list
-    def get_relationships(self, module, module_id, link_field_name, related_module, related_fields = [], related_module_link = [], delete = False):
-        args = [self.id, module, module_id, link_field_name, related_module, related_fields, related_module_link, {True:1, False:0}[delete]]
+    def get_relationships(self, module, module_id, link_field_name, related_module = '', related_module_query = '', related_fields = [], related_module_link = [], delete = False):
+        args = [self.id, module, module_id, link_field_name, related_module, related_module_query, related_fields, related_module_link, {True:1, False:0}[delete]]
+        print "fetching relationships:",args
         x = self.sendRequest('get_relationships', args)
         return x
 
@@ -357,6 +362,7 @@ def stripUnicode(obj):
         return dict( (str(key), stripUnicode(value)) for (key, value) in obj.items())
     if isinstance(obj, list):
         return list( stripUnicode(x) for x in obj )
+    return obj
 
 def toNameValueList(obj):
 	if isinstance(obj, dict):

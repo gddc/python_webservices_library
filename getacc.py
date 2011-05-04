@@ -1,24 +1,73 @@
 
 import sugarcrm
-#import sugarmodule
 
 S = sugarcrm.Sugarcrm("http://ruttanvm.cs.kent.edu:4080/akubera/service/v2/rest.php", "admin", "admin")
 
 accounts = S.module('Accounts')
+contacts = S.module('Contacts')
+
+industry = raw_input("input industry: ")
+X = accounts.find_by_industry(industry)
+
+for x in X:
+    print x.name,":"
+#    y = S.get_relationships('Accounts', x.id, 'contacts', '', ['first_name', 'last_name', 'title'])
+ #   y = sugarcrm.SugarEntryList(y)
+
+    y = accounts.get_relationships(x, contacts, ['first_name', 'last_name', 'title']) 
+
+    for e in y:
+        print "   ",e.title,"-",e.first_name,e.last_name
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#r = accounts.find_by_industry('retail')[0]
+
+#con = S.get_relationships('Accounts', r.id, 'contacts', related_fields = ['first_name', 'last_name', 'title'])
+#con = S.get_relationships(module = 'Accounts', module_id = r.id, link_field_name = 'contacts', related_module = "contact_id", related_fields = ['first_name', 'last_name', 'title'])
+#print r
+#con = accounts.get_relationships(r, 'contacts', '', ['first_name', 'title'])
+
+
+#print con
+#print dir(con[0])
+exit()
+
+
 
 fields = accounts.get_fields()
 
 for field in fields:
-    print f
+    print field
 
 print "-"*30
 
-r = accounts.find_by_industry('retail')
 
 for i in r:
     print i.name
 
-exit()
+print '-'*30
+print S.get_user_id()
+
 
 
 
