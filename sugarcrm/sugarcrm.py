@@ -371,12 +371,12 @@ def toNameValueList(obj):
 def fromNameValueList(obj):
 	#might want to make this a error instead of returning none
     result = {}
-	if isinstance(obj, list):
+    if isinstance(obj, list):
         for nvpair in obj:
             result[nvpair["name"]] = nvpair["value"]
 
     elif ifinstance(obj, dict):
-        result = {(i['name'], i['value']) for name,i in obj.iteritems()}
+        result = dict( (i['name'], i['value']) for name,i in obj.iteritems())
 
     else:
         result = None
