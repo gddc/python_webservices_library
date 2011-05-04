@@ -234,9 +234,9 @@ class Sugarcrm:
     # @param link_field_names The name of the field related to the other module.
     # @param related_id Array of related records' IDs
     # @return number of entries created, failed and deleted
-    def set_relationships(self, module_names, module_ids, link_field_names, related_id):
-        data = [self.id, module_name, module_id, link_field_name, related_ids]
-        x = self.sendRequest('set_relationship',data)
+    def set_relationships(self, module_names, module_ids, link_field_names, related_ids):
+        data = [self.id, module_names, module_ids, link_field_names, related_ids]
+        x = self.sendRequest('set_relationships',data)
         return x
 
     ## get_relationships
@@ -370,14 +370,18 @@ def toNameValueList(obj):
 
 def fromNameValueList(obj):
 	#might want to make this a error instead of returning none
-	if not isinstance(obj, list):
-		return None
+    result = {}
+	if isinstance(obj, list):
+        for nvpair in obj:
+            result[nvpair["name"]] = nvpair["value"]
 
-	result = {}
+    elif ifinstance(obj, dict):
+        result = {(i['name'], i['value']) for name,i in obj.iteritems()}
 
-	for nvpair in obj:
-		result[nvpair["name"]] = nvpair["value"]
-	return result
+    else:
+        result = None
+
+    return result
 
 if __name__ == "__main__":
     pass

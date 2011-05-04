@@ -17,7 +17,7 @@ for x in X:
     y = accounts.get_relationships(x, contacts, ['first_name', 'last_name', 'title']) 
 
     for e in y:
-        print "   ",e.title,"-",e.first_name,e.last_name
+        print "   ",e.title,'-',e.first_name,e.last_name
 
 
 
