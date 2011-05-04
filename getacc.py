@@ -11,13 +11,11 @@ X = accounts.find_by_industry(industry)
 
 for x in X:
     print x.name,":"
-#    y = S.get_relationships('Accounts', x.id, 'contacts', '', ['first_name', 'last_name', 'title'])
- #   y = sugarcrm.SugarEntryList(y)
 
-    y = accounts.get_relationships(x, contacts, ['first_name', 'last_name', 'title']) 
+    y = accounts.get_relationships(x, contacts, fields = ['first_name', 'last_name', 'title']) 
 
     for e in y:
-        print "   ",e.title,'-',e.first_name,e.last_name
+        print "   ",e.title,'-',e.first_name,e.last_name`
 
 
 

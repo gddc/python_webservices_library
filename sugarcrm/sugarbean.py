@@ -13,7 +13,7 @@ class SugarBean:
     #  @param self the object pointer
     #  @param data server response to be parsed
     def __init__(self, data):
-        print type(data)
+#        print type(data)
         
         try:
             entry_list = data['entry_list']

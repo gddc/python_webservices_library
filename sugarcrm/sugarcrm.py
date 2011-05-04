@@ -170,17 +170,20 @@ class Sugarcrm:
     # @param link_name_to_fields_array A list of link names and the fields to be returned for each link name.
     # @return A list of entries and list of relationships
     def get_entry(self, module_name, id, select_fields = [], link_name_to_fields_array = []):
+        if isinstance(id, dict): id = id['id']
         args = [self.id, module_name, id, select_fields, link_name_to_fields_array]
         return self.sendRequest('get_entry', args)
 
 	## get_entries
 	# Retrieves a list of SugarBeans based on the specified IDs.
     # @param module_name The name of the module from which to retrieve records.
-    # @param id The SugarBean's ID
+    # @param ids a list of id strings or list of dicts with 'id' element
     # @param select_fields optional list of fields to be returned
     # @param link_name_to_fields_array A list of link names and the fields to be returned for each link name.
     # @return Array containing list of entries specified and a list of their link data
     def get_entries(self, module_name, ids = [], select_fields = [], link_name_to_fields_array = []):
+        # assume that if first element of ids is a dict, that ids is of form: [{id:23948}, {id:238210}]
+        if isinstance(ids[0], dict): ids = [i['id'] for i in ids]
         args = [self.id, module_name, ids, select_fields, link_name_to_fields_array]
         return self.sendRequest('get_entries', args)
 
@@ -251,7 +254,7 @@ class Sugarcrm:
     # @return records of entry list, and relationship list
     def get_relationships(self, module, module_id, link_field_name, related_module = '', related_module_query = '', related_fields = [], related_module_link = [], delete = False):
         args = [self.id, module, module_id, link_field_name, related_module, related_module_query, related_fields, related_module_link, {True:1, False:0}[delete]]
-        print "fetching relationships:",args
+#        print "fetching relationships:",args
         x = self.sendRequest('get_relationships', args)
         return x
 
@@ -339,9 +342,15 @@ class Sugarcrm:
 		args = [self.id, ids, select_fields]
 		result = self.sendRequest('get_report_entries', args)
 		return result
-
+    
+    ## module
+    # Returns a module helper object with automatic functions to simplify some
+    #   common tasks, such as querying and finding relationships
+    # @param module_name String of the module's name, will be capitalized for the server
+    # @return Sugarmodule object or None
     def module(self, module_name):
-        return Sugarmodule(self, module_name)
+        import string
+        return Sugarmodule(self, string.capwords(module_name))
 
 
 ## Creates md5 hash to send as a password
