@@ -198,7 +198,7 @@ class Sugarcrm:
     # @param max_results The maximum number of results to return.
     # @param deleted Set True to include deleted records
     # @return [result_count, next_offset, entry_list, relationship_list] 
-    def get_entry_list(self, module_name, query ="", order_by ="", offset = 0, select_fields = [], link_name_to_fields_array = []):
+    def get_entry_list(self, module_name, query = "", order_by = "", offset = 0, select_fields = [], link_name_to_fields_array = []):
         args = [self.id, module_name, query, order_by, offset, select_fields, link_name_to_fields_array]
         return self.sendRequest('get_entry_list', args)
 
@@ -315,8 +315,8 @@ class Sugarcrm:
     # attachment, The name of the revised document, the revision value,
     # the file name of the attachment, the binary contents of the file
     def get_document_revision(self, id):
-        args =[self.id, id]
-        result =self.sendRequest('get_document_revision', args)
+        args = [self.id, id]
+        result = self.sendRequest('get_document_revision', args)
         return result
     
     ## search_by_module
@@ -328,8 +328,8 @@ class Sugarcrm:
     # @param max_results The maximum number of records to return
     # @return The records returned by the search results
     def search_by_module(self, search_string, modules, offset, max_result):
-        args =[self.id, search_string, modules, modules, offset, max_result]
-        result =self.sendRequest('search_by_module', args)
+        args = [self.id, search_string, modules, modules, offset, max_result]
+        result = self.sendRequest('search_by_module', args)
         return result
 		
 		
@@ -374,22 +374,20 @@ def stripUnicode(obj):
     return obj
 
 def toNameValueList(obj):
+    result = obj
 	if isinstance(obj, dict):
-		return list( {"name" : name, "value" : value} for (name, value) in obj.items() )
+		result = list( {"name" : name, "value" : value} for (name, value) in obj.items() )
+    return result
 
 def fromNameValueList(obj):
-	#might want to make this a error instead of returning none
-    result = {}
+
     if isinstance(obj, list):
-        for nvpair in obj:
-            result[nvpair["name"]] = nvpair["value"]
-
+        result = dict( i["name"], i['value'] for i in obj )
     elif isinstance(obj, dict):
-        result = dict( (i['name'], i['value']) for name,i in obj.iteritems())
-
+        result = dict( (i['name'], i['value']) for i in obj.values())
     else:
+    	#might want to make this a error instead of returning none
         result = None
-
     return result
 
 if __name__ == "__main__":
