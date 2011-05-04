@@ -375,7 +375,7 @@ def fromNameValueList(obj):
         for nvpair in obj:
             result[nvpair["name"]] = nvpair["value"]
 
-    elif ifinstance(obj, dict):
+    elif isinstance(obj, dict):
         result = dict( (i['name'], i['value']) for name,i in obj.iteritems())
 
     else:
