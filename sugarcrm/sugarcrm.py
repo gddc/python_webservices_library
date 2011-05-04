@@ -176,7 +176,7 @@ class Sugarcrm:
     # @param select_fields optional list of fields to be returned
     # @param link_name_to_fields_array A list of link names and the fields to be returned for each link name.
     # @return Array containing list of entries specified and a list of their link data
-    def get_entries(self, module_name, ids, select_fields, link_name_to_fields_array):
+    def get_entries(self, module_name, ids = [], select_fields = [], link_name_to_fields_array = []):
         args = [self.id, module_name, ids, select_fields, link_name_to_fields_array]
         return self.sendRequest('get_entries', args)
 
@@ -191,8 +191,8 @@ class Sugarcrm:
     # @param max_results The maximum number of results to return.
     # @param deleted Set True to include deleted records
     # @return [result_count, next_offset, entry_list, relationship_list] 
-    def get_entry_list(self, module_name, query ="", order_by ="", offset = 0, select_fields = [], link_name_to_fields_array = []):
-        args = [self.id, module_name, query, order_by, offset, select_fields, link_name_to_fields_array]
+    def get_entry_list(self, module_name, query ="", order_by ="", offset = 0, select_fields = [], link_name_to_fields_array = [], max_results, deleted):
+        args = [self.id, module_name, query, order_by, offset, select_fields, link_name_to_fields_array, max_results, deleted]
         return self.sendRequest('get_entry_list', args)
 
     ## set_entry
