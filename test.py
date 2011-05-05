@@ -8,8 +8,11 @@ if S.connected == 1:
 
 m = S.module('Accounts')
 
-ind_name = raw_input("search for industry: ")
+new_name = raw_input("new account name: ")
+new_indu = raw_input("new industry name: ")
+x = m.newBean({'name': new_name, 'industry': new_indu})
 
+ind_name = raw_input("search for industry: ")
 ind_list = m.find_by_industry(ind_name)
 
 for i in ind_list:
