@@ -6,6 +6,7 @@
 
 from sugarentrylist import SugarEntryList
 from sugarbean import SugarBean
+import sugarcrm
 
 ## Sugarmodule
 #  Abstract class which has ability to access and modify all entries in
@@ -28,9 +29,12 @@ class Sugarmodule:
         self._cachedFields = m_fields['module_fields']
 
         for field_name in self._cachedFields:
-            self.__dict__["find_by_"+field_name] = lambda q, n=field_name: self.get_entries_where("%s.%s = '%s' " % (self.name.lower(), n.lower(), q))
+            self.__dict__["find_by_"+field_name] = lambda q, _n=field_name: self.get_entries_where("%s.%s = '%s' " % (self.name.lower(), _n.lower(), q))
 
         self.relationships = m_fields['link_fields'].copy()
+
+        for link in self.relationships.values():
+            self.__dict__['link_to_'+link['name']] = lambda bean, fields = [], query = '', _a = link: self.get_relationships(bean = bean, module = _a['name'], query = query, fields = fields)
 
 #        print "LINK_NAMES:", type(m_fields['link_fields'])
 #        for link_name,i in m_fields['link_fields'].iteritems():
@@ -72,9 +76,13 @@ class Sugarmodule:
             if not self.prev_get_entries['next_offset']: break
         return result
 
+    ## get_relationships
+    #   Retrieves the relationships between a specified bean and module 
+    #
     def get_relationships(self, bean, module, query = '', fields = []):
-        if isinstance(bean, SugarBean): id = bean.id
-        else: id = str(bean)
+        if isinstance(bean, SugarBean): ids = [bean.id]
+        elif isinstance(bean, list): ids = [b.id for b in bean]
+        else: ids = [str(bean)]
         link_name = ''
         if isinstance(module, Sugarmodule):
             for i,j in self.relationships.iteritems():
@@ -84,8 +92,27 @@ class Sugarmodule:
         if not link_name:
             raise InvalidRelationship
 
-#  get_relationships(module, module_id, link_field_name, related_module = '', related_module_query = '', related_fields = [], related_module_link = [], delete = False):
-        result = self.connection.get_relationships(module = self.name, module_id = id, link_field_name = link_name, related_module_query = fields)
-
-#        print "result:",result
+        if len(ids) == 1:
+            result = self.connection.get_relationships(module = self.name, module_id = ids[0], link_field_name = link_name, related_module_query = fields)
+        else:
+            result = [self.connection.get_relationships(module = self.name, module_id = id, link_field_name = link_name, related_module_query = fields) for id in ids];
         return SugarEntryList(result)
+
+    ## info
+    # print a list of attributes describing the module
+    #
+    def info(self):
+        result  = 'name : %s\n' % (self.name)
+        result += '_'*6+'Fields'+'_'*18+'\t____Relationships'+'_'*10+'\n'
+        zzz = lambda s1,s2 : '%-29s\t%s\n' % ({True: s1, False: ''}[s1 != None], {True: s2, False: ''}[s2 != None])
+        for x in map(zzz, self._cachedFields, self.relationships) : result += x
+        print result
+
+    def newBean(self, fields, values = None):
+        if isinstance(fields,dict): data = fields
+        else: data = dict( (f,v) for f,v in zip(fields, values) )
+        x = self.connection.set_entry(self.name, sugarcrm.toNameValueList(data) )
+        return x
+
+if __name__ == "__main__":
+    pass

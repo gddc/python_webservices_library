@@ -15,15 +15,19 @@ class SugarEntryList (list):
     ## SugarEntryList Constructor
     #  @param self the object pointer
     #  @param data server response to be parsed
-    def __init__(self, data):
-        if not isinstance(data,dict): return
-        try:
-            d = data['entry_list']
-        except KeyError:
-            d = data
+    def __init__(self, data, connection = None):
+        if not isinstance(data, list):
+            data = [data]
 
-        for i in d:
-            self.append(SugarBean(i))
+        for datum in data:
+            if not isinstance(datum,dict): continue
+            try:
+                d = datum['entry_list']
+            except KeyError:
+                d = datum
+    
+            for i in d:
+                self.append(SugarBean(i, connection))
 
     def __str__(self):
         result = [str(bean) for bean in self]

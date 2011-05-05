@@ -73,8 +73,7 @@ class Sugarcrm:
         except TypeError:
             raise InvalidConnection
         except ValueError:
-            print "FAILED",response
-            raise InvalidConnection
+                raise InvalidConnection
 
         # check version of python, if lower than 2.7.2 strip unicode
         if sys.version_info < (2, 7, 2):
@@ -154,9 +153,9 @@ class Sugarcrm:
     ## get_entries_count
     # Retrieves the specified number of records in a module.
     # @param module_name Module containing entries to count
-	# @param query Optional query to impose conditions on which entries are counted
-	# @param deleted Optional parameter to specify whether to count deleted entries
-	# @return integer count of number 
+    # @param query Optional query to impose conditions on which entries are counted
+    # @param deleted Optional parameter to specify whether to count deleted entries
+    # @return integer count of number 
     def get_entries_count(self, module_name, query = "", deleted = False):
         args = [self.id, module_name, query, {True:1,False:0}[deleted]]
         result = self.sendRequest('get_entries_count', args)
@@ -375,14 +374,14 @@ def stripUnicode(obj):
 
 def toNameValueList(obj):
     result = obj
-	if isinstance(obj, dict):
-		result = list( {"name" : name, "value" : value} for (name, value) in obj.items() )
+    if isinstance(obj, dict):
+        result = list( {"name" : name, "value" : value} for (name, value) in obj.items() )
     return result
 
 def fromNameValueList(obj):
 
     if isinstance(obj, list):
-        result = dict( i["name"], i['value'] for i in obj )
+        result = dict( (i["name"], i['value']) for i in obj )
     elif isinstance(obj, dict):
         result = dict( (i['name'], i['value']) for i in obj.values())
     else:

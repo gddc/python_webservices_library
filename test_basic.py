@@ -1,5 +1,5 @@
 #
-#   sugarcrm.py
+#   test_basic.py
 #
 #   KSU capstone project
 #
@@ -20,7 +20,7 @@ if user == 'class':
 	password = "class123"
 
 # sugarcrm.py session object
-session = sugarcrm.Sugarcrm(url, user, password)	
+session = sugarcrm.Sugarcrm( url, user, password)	
 
 if session.connected == 1:
 	print "\nConnection successful to "+url
