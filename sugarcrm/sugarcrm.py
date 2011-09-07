@@ -64,7 +64,8 @@ class Sugarcrm:
     # @param data parameters to the function being called, should be in a list sorted by order of items
     # @return dictionary object of server response
     def sendRequest(self, method, data):
-        args = {'method': method, 'input_type': 'JSON', 'response_type' : 'JSON', 'rest_data' : data}
+        data = json.dumps(data)
+        args = {'method': method, 'input_type': 'json', 'response_type' : 'json', 'rest_data' : data}
         params = urllib.urlencode(args)
         response = urllib.urlopen(self.host, params)
         response = response.read()
@@ -89,11 +90,10 @@ class Sugarcrm:
     # This function ought to be obsolete after creating classes which
     #   handle all returned objects from the server
     def testForError(self, obj):
-         if isinstance(obj, dict):
-           if obj.has_key("name"):
-               if self.quiet == False:
-                   print "ERROR:",obj["name"],":",obj["description"],"\n"
-               raise GeneralException
+        if isinstance(obj, dict) and obj.has_key("name"):
+            if self.quiet == False:
+                print "ERROR: %s:%s \n" % (obj["name"], obj["description"])
+            raise GeneralException
 
 
     ## Login
