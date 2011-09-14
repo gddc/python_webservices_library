@@ -35,7 +35,7 @@ class Sugarcrm:
 
         ## @var id
         # String which holds the session id of the connection, requierd at every call after 'login'
-        self.id = ""
+        self._session = ""
 
         ## @var host
         # host url which is is called every time a request is made
@@ -70,7 +70,8 @@ class Sugarcrm:
             # Use this to be able to evaluate "method"
             def gen(method_name):
                 def f(*args):
-                    return self.sendRequest(method_name, [self.id] + list(args))
+                    return self.sendRequest(method_name,
+                                            [self._session] + list(args))
                 return f
             self.__dict__[method] = gen(method)
 
@@ -97,6 +98,7 @@ class Sugarcrm:
         # check version of python, if lower than 2.7.2 strip unicode
         if sys.version_info < (2, 7, 2):
             result = stripUnicode(result)
+        print result
 
         self.testForError(result)
         return result
@@ -127,21 +129,12 @@ class Sugarcrm:
             raise InvalidLogin
 
         try:
-            self.id = x["id"]
+            self._session = x["id"]
         except KeyError:
             raise InvalidConnection
 
         # If all goes well we've successfully connected
         self.connected = 1
-
-    ## module
-    # Returns a module helper object with automatic functions to simplify some
-    #   common tasks, such as querying and finding relationships
-    # @param module_name String of the module's name, will be capitalized for the server
-    # @return Sugarmodule object or None
-    def module(self, module_name):
-        import string
-        return Sugarmodule(self, string.capwords(module_name))
 
 
 ## Creates md5 hash to send as a password
