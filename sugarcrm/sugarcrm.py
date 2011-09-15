@@ -98,7 +98,6 @@ class Sugarcrm:
         # check version of python, if lower than 2.7.2 strip unicode
         if sys.version_info < (2, 7, 2):
             result = stripUnicode(result)
-        print result
 
         self.testForError(result)
         return result
@@ -136,6 +135,12 @@ class Sugarcrm:
         # If all goes well we've successfully connected
         self.connected = 1
 
+    def relate(self, main, secondary):
+        """Relate two SugarEntry objects."""
+
+        self.set_relationship(main._module._name,
+                            main['id'], secondary._module._name.lower(),
+                            [secondary['id']])
 
 ## Creates md5 hash to send as a password
 # @param password string to be encoded

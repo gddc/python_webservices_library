@@ -118,7 +118,7 @@ class QueryList:
             if key_field.endswith('_c'):
                 if_cstm = '_cstm'
 
-            field = self._module._module_name.lower() + if_cstm + '.' + key_field
+            field = self._module._name.lower() + if_cstm + '.' + key_field
 
             if key_oper == 'exact':
                 q_str += '%s = "%s"' % (field, query[key])
@@ -176,8 +176,7 @@ class QueryList:
 
 
     def __len__(self):
-        result = self._module._instance._wsdl.get_entries_count(
-                        self._module._instance._session,
-                        self._module._module_name, self._query, 0)
-        return result['result_count']
+        result = self._module._connection.get_entries_count(
+                        self._module._name, self._query, 0)
+        return int(result['result_count'])
 
