@@ -1,9 +1,14 @@
 
+
 class SugarEntry:
-    """Defines an entry of a SugarCRM module."""
+    """Define an entry of a SugarCRM module."""
     
     def __init__(self, module):
-        """Represents a new or an existing entry."""
+        """Represents a new or an existing entry.
+
+        Keyword arguments:
+        module -- SugarModule object the entry belongs to
+        """
 
         # Keep a reference to the parent module.
         self._module = module
@@ -23,10 +28,12 @@ class SugarEntry:
 
 
     def __getitem__(self, field_name):
-        """Return the value of the field 'field_name' of this SugarEntry."""
+        """Return the value of the field 'field_name' of this SugarEntry.
 
-#        if field_name in [item['name'] for item in self._module._fields]:
-        # CAMBIAR! XXXXXXXXXXXXXXXXXX
+        Keyword arguments:
+        field_name -- name of the field to be retrieved
+        """
+
         if field_name in self._module._fields.keys():
             try:
                 return self._fields[field_name]
@@ -40,20 +47,27 @@ class SugarEntry:
                     q_str = self._module._name.lower() + \
                                 ".id='%s'" % self['id']
                     res = self._module._connection.get_entry_list(
-                            self._module._name,
-                            q_str, '', 0, [field_name], 1, 0)
-                    for attribute in res['entry_list'][0]['name_value_list']:
+                                                    self._module._name, q_str,
+                                                    '', 0, [field_name], 1, 0)
+
+                    nvl = res['entry_list'][0]['name_value_list']
+                    for attribute in nvl:
                         if attribute == field_name:
-                            # CAMBIAR! XXXXXXXXXXXXXXXXXX
-                            self._fields[attribute] = res['entry_list'][0]['name_value_list'][attribute]['value']
-                            return res['entry_list'][0]['name_value_list'][attribute]['value']
+                            self._fields[attribute] = nvl[attribute]['value']
+
+                            return nvl[attribute]['value']
 
         else:
             raise AttributeError
 
 
     def __setitem__(self, field_name, value):
-        """Set the value of the field 'field_name' of this SugarEntry."""
+        """Set the value of a field of this SugarEntry.
+
+        Keyword arguments:
+        field_name -- name of the field to be updated
+        value -- new value for the field
+        """
 
         if field_name in self._module._fields.keys():
             self._fields[field_name] = value
@@ -64,9 +78,12 @@ class SugarEntry:
 
 
     def save(self):
-        """Saves this entry in SugarCRM through SOAP. If the 'id' field is
-        blank, it creates a new entry and sets the 'id' value."""
-        
+        """Save this entry in the SugarCRM server.
+
+        If the 'id' field is blank, it creates a new entry and sets the
+        'id' value.
+        """
+
         # If 'id' wasn't blank, it's added to the list of dirty fields; this
         # way the entry will be updated in the SugarCRM connection.
         if self['id'] != '':
@@ -90,21 +107,28 @@ class SugarEntry:
 
 
     def relate(self, related):
-        """Relate this SugarEntry with the one passed as a parameter."""
+        """Relate this SugarEntry with the one passed as a parameter.
+
+        Keyword arguments:
+        related -- the secondary SugarEntry object in the relationship
+        """
 
         self._module._connection.relate(self, related)
 
 
     def get_related(self, module):
-        """Return the related entries in the module 'module_name'"""
+        """Return the related entries in another module.
+
+        Keyword arguments:
+        module -- related SugarModule object
+        """
 
         connection = self._module._connection
         result = connection.get_relationships(self._module._name,
-                                                self['id'], module._name.lower())
+                                              self['id'], module._name.lower())
 
         entries = []
         for elem in result['entry_list']:
-#            entry = SugarEntry(connection.modules[module_name])
             entry = SugarEntry(module)
             entry._fields['id'] = elem['id']
             entries.append(entry)

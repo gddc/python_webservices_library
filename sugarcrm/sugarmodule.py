@@ -1,16 +1,23 @@
 
 import itertools
 
-#from sugarentrylist import SugarEntryList
 from sugarentry import SugarEntry
-#import sugarcrm
-from sugar_error import InvalidRelationship
 
 
 class SugarModule:
-    """Defines a SugarCRM module."""
+    """Defines a SugarCRM module.
+
+    This is used to perform module related tasks, such as queries and creating
+    new entries.
+    """
     
     def __init__(self, connection, name):
+        """Constructor for SugarCRM module.
+
+        Keyword arguments:
+        connection -- Sugarcrm object to connect to a server
+        name -- name of SugarCRM module that this class will represent
+        """
         self._name = name
         self._connection = connection
         
@@ -21,9 +28,15 @@ class SugarModule:
         self._relationships = result['link_fields'].copy()
 
 
+    def _search(self, query_str, start = 0, total = 20, fields = []):
+        """Return a list of SugarEntry objects that match the query.
 
-    def search(self, query_str, start = 0, total = 20, fields = []):
-        """Return a list of SugarEntry objects that match the query."""
+        Keyword arguments:
+        query_str -- SQL query to be passed to the API
+        start -- Record offset to start from
+        total -- Maximum number of results to return
+        fields -- If set, return only the specified fields
+        """
 
         if 'id' not in fields:
             fields.append('id')
@@ -42,16 +55,16 @@ class SugarModule:
                 for i in range(result['result_count']):
                     
                     new_entry = SugarEntry(self)
-                    
-#                    for attribute in result['entry_list'][i]['name_value_list']:
-#                        new_entry._fields[attribute['name']] = attribute['value']
-                    for attribute in result['entry_list'][i]['name_value_list']:
-                        new_entry._fields[attribute] = result['entry_list'][i]['name_value_list'][attribute]['value']
+
+                    nvl = result['entry_list'][i]['name_value_list']
+                    for attribute in nvl:
+                        new_entry._fields[attribute] = nvl[attribute]['value']
             
                     # SugarCRM seems broken, because it retrieves several copies
                     #  of the same contact for every opportunity related with
                     #  it. Check to make sure we don't return duplicate entries.
-                    if new_entry['id'] not in [entry['id'] for entry in entry_list]:
+                    if new_entry['id'] not in [entry['id']
+                                                for entry in entry_list]:
                         entry_list.append(new_entry)
                         count += 1
         
@@ -60,9 +73,11 @@ class SugarModule:
 
     def query(self):
         """
-        Return a QueryList object for this SugarModule. Initially, it describes
-        all the objects in the module. One can find specific objects by
-        calling 'filter' and 'exclude' on the returned object.
+        Return a QueryList object for this SugarModule.
+
+        Initially, it describes all the objects in the module. One can find
+        specific objects by calling 'filter' and 'exclude' on the returned
+        object.
         """
 
         return QueryList(self)
@@ -72,6 +87,13 @@ class QueryList:
     """Query a SugarCRM module for specific entries."""
 
     def __init__(self, module, query = ''):
+        """Constructor for QueryList.
+
+        Keyword arguments:
+        module -- SugarModule object to query
+        query -- SQL query to be passed to the API
+        """
+
         self._module = module
         self._query = query
         self._next_items = []
@@ -88,7 +110,7 @@ class QueryList:
             self._next_items = self._next_items[1:]
             return item
         except IndexError:
-            self._next_items = self._module.search(self._query,
+            self._next_items = self._module._search(self._query,
                                                 start = self._offset, total = 5)
             self._offset += len(self._next_items)
             if len(self._next_items) == 0:
@@ -104,9 +126,10 @@ class QueryList:
                                             index.step))
 
 
-
     def _build_query(self, **query):
-        # Build the API query string
+        """Build the API query string.
+        """
+
         q_str = ''
         for key in query.keys():
             # Get the field and the operator from the query
@@ -147,11 +170,12 @@ class QueryList:
     def filter(self, **query):
         """Filter this QueryList, returning a new QueryList.
 
-        query is a keyword argument dictionary where the filters are specified:
-        The keys should be some of the module's field names, suffixed by '__'
-        and one of the following operators: 'exact', 'contains', 'in', 'gt',
-        'gte', 'lt' or 'lte'. When the operator is 'in', the corresponding value
-        MUST be a list.
+        Keyword arguments:
+        query -- kwargs dictionary where the filters are specified:
+            The keys should be some of the module's field names, suffixed by
+            '__' and one of the following operators: 'exact', 'contains', 'in',
+            'gt', 'gte', 'lt' or 'lte'. When the operator is 'in', the
+            corresponding value MUST be a list.
         """
 
         if self._query != '':
@@ -163,8 +187,8 @@ class QueryList:
 
 
     def exclude(self, **query):
-        """Filter this QueryList, returning a new QueryList, as in filter(), but
-        excluding the entries that match the query.
+        """Filter this QueryList, returning a new QueryList, as in filter(),
+        but excluding the entries that match the query.
         """
 
         if self._query != '':
