@@ -19,16 +19,13 @@ class Sugarcrm:
     server.
     """
     
-    def __init__(self, url, username=None, password=None):
+    def __init__(self, url, username, password):
         """Constructor for Sugarcrm connection.
 
         Keyword arguments:
         url -- string URL of the sugarcrm REST API
-        username -- Optional username to allow login upon construction
-        password -- Optional password to allow login upon construction
-
-        The optional username and password remove the otherwise mandatory job
-        of logging into the server after connection.
+        username -- username to allow login upon construction
+        password -- password to allow login upon construction
         """
 
         # String which holds the session id of the connection, requierd at
@@ -41,9 +38,8 @@ class Sugarcrm:
         self._username = username
         self._password = password
 
-        # If the username and password are set, attempt to login.
-        if username and password:
-            self.login(username, password)
+        # Attempt to login.
+        self.login(username, password)
 
         # Dynamically add the API methods to the object.
         for method in ['get_user_id', 'get_user_team_id',
