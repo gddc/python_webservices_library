@@ -9,7 +9,7 @@ import hashlib
 import json
 import sys
 
-from sugar_error import *
+from sugarerror import *
 from sugarmodule import *
 
 class Sugarcrm:

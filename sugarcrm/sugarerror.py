@@ -1,5 +1,5 @@
 #
-#   sugar_error.py
+#   sugarerror.py
 #
 #   Exceptions to be raised when various problems occur while running sugarcrm software
 #
