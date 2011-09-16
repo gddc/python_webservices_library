@@ -19,11 +19,11 @@ class Sugarcrm:
     server.
     """
     
-    def __init__(self, hostname, username=None, password=None):
+    def __init__(self, url, username=None, password=None):
         """Constructor for Sugarcrm connection.
 
         Keyword arguments:
-        hostname -- string URL of the sugarcrm REST API
+        url -- string URL of the sugarcrm REST API
         username -- Optional username to allow login upon construction
         password -- Optional password to allow login upon construction
 
@@ -35,8 +35,11 @@ class Sugarcrm:
         # every call after 'login'.
         self._session = ""
 
-        # host url which is is called every time a request is made.
-        self.host = hostname
+        # url which is is called every time a request is made.
+        self._url = url
+
+        self._username = username
+        self._password = password
 
         # If the username and password are set, attempt to login.
         if username and password:
@@ -78,7 +81,7 @@ class Sugarcrm:
         args = {'method': method, 'input_type': 'json',
                 'response_type' : 'json', 'rest_data' : data}
         params = urllib.urlencode(args)
-        response = urllib.urlopen(self.host, params)
+        response = urllib.urlopen(self._url, params)
         response = response.read()
         try:
             result = json.loads(response)
