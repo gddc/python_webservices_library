@@ -31,28 +31,12 @@ class Sugarcrm:
         of logging into the server after connection.
         """
 
-        print "Connecting to: "+hostname
-
-        # Boolean value to ensure that the object has connected and logged on
-        # properly to the server, may be unnecessary due to 'id' variable.
-        self.connected = 0
-
         # String which holds the session id of the connection, requierd at
         # every call after 'login'.
         self._session = ""
 
         # host url which is is called every time a request is made.
         self.host = hostname
-
-        # The results of the last function called.
-        self.last_call = None
-
-        # The connection will print errors messages to stdout if false.
-        self.quiet = False
-
-        # TODO: implement debug flag which will print entire traceback if set,
-        # else it will only state error and die.
-        self.debug = False
 
         # If the username and password are set, attempt to login.
         if username and password:
@@ -118,8 +102,7 @@ class Sugarcrm:
         #   handle all returned objects from the server
 
         if isinstance(obj, dict) and obj.has_key("name"):
-            if self.quiet == False:
-                print "ERROR: %s:%s \n" % (obj["name"], obj["description"])
+            print "ERROR: %s:%s \n" % (obj["name"], obj["description"])
             raise GeneralException
 
 
@@ -143,9 +126,6 @@ class Sugarcrm:
             self._session = x["id"]
         except KeyError:
             raise InvalidConnection
-
-        # If all goes well we've successfully connected
-        self.connected = 1
 
 
     def relate(self, main, secondary):
