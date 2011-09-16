@@ -39,7 +39,7 @@ class Sugarcrm:
         self._password = password
 
         # Attempt to login.
-        self.login(username, password)
+        self._login(username, password)
 
         # Dynamically add the API methods to the object.
         for method in ['get_user_id', 'get_user_team_id',
@@ -59,7 +59,7 @@ class Sugarcrm:
                                               [self._session] + list(args))
                     except GeneralException:
                         # Try to recover if session ID was lost
-                        self.login(self._username, self._password)
+                        self._login(self._username, self._password)
                         result = self._sendRequest(method_name,
                                               [self._session] + list(args))
 
@@ -114,7 +114,7 @@ class Sugarcrm:
             raise GeneralException
 
 
-    def login(self, username, password):
+    def _login(self, username, password):
         """Estabilsh connection to the server.
 
         Keyword arguments:
