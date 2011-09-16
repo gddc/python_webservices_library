@@ -58,8 +58,17 @@ class Sugarcrm:
             # Use this to be able to evaluate "method".
             def gen(method_name):
                 def f(*args):
-                    return self._sendRequest(method_name,
+                    try:
+                        result = self._sendRequest(method_name,
                                               [self._session] + list(args))
+                    except GeneralException:
+                        # Try to recover if session ID was lost
+                        self.login(self._username, self._password)
+                        result = self._sendRequest(method_name,
+                                              [self._session] + list(args))
+
+                    return result
+
                 return f
             self.__dict__[method] = gen(method)
 
