@@ -22,9 +22,13 @@ class SugarEntry:
             self._fields['id'] = ''
 
 
-    def __str__(self):
+    def __unicode__(self):
         return "<SugarCRM %s entry '%s'>" % \
                     (self._module._name.rstrip('s'), self['name'])
+
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
 
 
     def __getitem__(self, field_name):
