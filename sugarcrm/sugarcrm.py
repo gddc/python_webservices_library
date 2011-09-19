@@ -138,36 +138,3 @@ def _passencode(password):
 
     return result
 
-
-## Remove utf-8 encoding returned from JSON 
-# @param obj object which is supposedly in unicode
-# @return same object in ascii
-def stripUnicode(obj):
-    if isinstance(obj, unicode):
-        return str(obj)
-    if isinstance(obj, dict):
-        return dict( (str(key), stripUnicode(value)) for (key, value) in obj.items())
-    if isinstance(obj, list):
-        return list( stripUnicode(x) for x in obj )
-    return obj
-
-def toNameValueList(obj):
-    result = obj
-    if isinstance(obj, dict):
-        result = list( {"name" : name, "value" : value} for (name, value) in obj.items() )
-    return result
-
-def fromNameValueList(obj):
-
-    if isinstance(obj, list):
-        result = dict( (i["name"], i['value']) for i in obj )
-    elif isinstance(obj, dict):
-        result = dict( (i['name'], i['value']) for i in obj.values())
-    else:
-    	#might want to make this a error instead of returning none
-        result = None
-    return result
-
-if __name__ == "__main__":
-    pass
-
