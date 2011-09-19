@@ -9,7 +9,7 @@ import hashlib
 import json
 import sys
 
-from sugarerror import *
+from sugarerror import SugarError, SugarUnhandledException, is_error
 from sugarmodule import *
 
 class Sugarcrm:
@@ -57,11 +57,14 @@ class Sugarcrm:
                     try:
                         result = self._sendRequest(method_name,
                                               [self._session] + list(args))
-                    except GeneralException:
-                        # Try to recover if session ID was lost
-                        self._login(self._username, self._password)
-                        result = self._sendRequest(method_name,
+                    except SugarError, error:
+                        if error.is_invalid_session():
+                            # Try to recover if session ID was lost
+                            self._login(self._username, self._password)
+                            result = self._sendRequest(method_name,
                                               [self._session] + list(args))
+                        else:
+                            raise SugarUnhandledException
 
                     return result
 
@@ -88,26 +91,13 @@ class Sugarcrm:
         params = urllib.urlencode(args)
         response = urllib.urlopen(self._url, params)
         response = response.read()
-        try:
-            result = json.loads(response)
-        except (TypeError, ValueError):
-            raise InvalidConnection
 
-        self.testForError(result)
+        result = json.loads(response)
+
+        if is_error(result):
+            raise SugarError(result)
+
         return result
-
-
-    def testForError(self, obj):
-        ## Test any returned object for an error
-        # @param self the object pointer
-        # @param obj the object which will be identified as an error or not
-        # @return Sugarcrm.GeneralException if 'obj' is an error.
-        # This function ought to be obsolete after creating classes which
-        #   handle all returned objects from the server
-
-        if isinstance(obj, dict) and obj.has_key("name"):
-            print "ERROR: %s:%s \n" % (obj["name"], obj["description"])
-            raise GeneralException
 
 
     def _login(self, username, password):
@@ -121,15 +111,11 @@ class Sugarcrm:
         args = {'user_auth' : {'user_name' : username,
                                'password' : _passencode(password)}}
 
-        try:
-            x = self._sendRequest('login', args)
-        except GeneralException:
-            raise InvalidLogin
-
+        x = self._sendRequest('login', args)
         try:
             self._session = x["id"]
         except KeyError:
-            raise InvalidConnection
+            raise SugarUnhandledException
 
 
     def relate(self, main, secondary):
