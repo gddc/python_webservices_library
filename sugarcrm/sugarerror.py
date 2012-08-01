@@ -6,8 +6,6 @@
 
 class SugarError(Exception):
     def __init__(self, data):
-        print "*** SugarCRM Error (" + str(data['number']) + \
-                "): " + data['description'] + " ***"
         self.name = data['name']
         self.description = data['description']
         self.number = data['number']

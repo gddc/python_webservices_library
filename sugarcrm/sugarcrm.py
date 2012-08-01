@@ -71,6 +71,17 @@ class Sugarcrm:
                 return f
             self.__dict__[method] = gen(method)
 
+        # Add modules shortcuts
+        self.modules = {}
+        rst_modules = self.get_available_modules()
+        for module_name in [module['module_key'] for
+                                            module in rst_modules['modules']]:
+            try:
+                module = SugarModule(self, module_name)
+                self.modules[module_name] = module
+            except:
+                pass
+
 
     def _sendRequest(self, method, data):
         """Sends an API request to the server, returns a dictionary with the
