@@ -57,7 +57,13 @@ class SugarEntry:
                     nvl = res['entry_list'][0]['name_value_list']
                     for attribute in nvl:
                         if attribute == field_name:
-                            self._fields[attribute] = HTMLParser().unescape(nvl[attribute]['value'])
+                            value = nvl[attribute]['value']
+                            if value:
+                                self._fields[attribute] = \
+                                                HTMLParser().unescape(
+                                                    nvl[attribute]['value'])
+                            else:
+                                self._fields[attribute] = ''
 
                             return self._fields[attribute]
 
