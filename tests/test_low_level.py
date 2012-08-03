@@ -53,10 +53,45 @@ class EntryTesting(BaseTests):
         contact.save()
         self._contact = contact
 
-    def test_deletecontact(self):
+    def test_rename_contact(self):
+        self._contact['first_name'] = 'Paul'
+        self._contact.save()
+
+        search_result = self._conn.modules['Contacts'].query().filter(
+                                            id__exact = self._contact['id'])
+        contact = search_result[0]
+
+        self.assertEqual(self._contact['first_name'],
+                            contact['first_name'])
+
+    def test_relationship(self):
+        accounts = self._conn.modules['Accounts']
+        account = sugarcrm.SugarEntry(accounts)
+        account['name'] = u'John\'s Account'
+        account['website'] = 'http//www.hash-tag.com.ar/'
+
+        account.save()
+
+        self._contact.relate(account)
+        self._contact.save()
+        account.save()
+
+        rel_accounts = self._contact.get_related(accounts)
+        rel_account = rel_accounts[0]
+        self.assertEqual(account['name'], rel_account['name'])
+
+        rel_contacts = account.get_related(self._conn.modules['Contacts'])
+        rel_contact = rel_contacts[0]
+        self.assertEqual(self._contact['first_name'], rel_contact['first_name'])
+
+        account['deleted'] = 1
+        account.save()
+
+    def tearDown(self):
         contact = self._contact
         contact['deleted'] = 1
         contact.save()
+        pass
 
 
 if __name__ == '__main__':
