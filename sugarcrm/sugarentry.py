@@ -1,4 +1,4 @@
-
+from HTMLParser import HTMLParser
 
 class SugarEntry:
     """Define an entry of a SugarCRM module."""
@@ -57,9 +57,9 @@ class SugarEntry:
                     nvl = res['entry_list'][0]['name_value_list']
                     for attribute in nvl:
                         if attribute == field_name:
-                            self._fields[attribute] = nvl[attribute]['value']
+                            self._fields[attribute] = HTMLParser().unescape(nvl[attribute]['value'])
 
-                            return nvl[attribute]['value']
+                            return self._fields[attribute]
 
         else:
             raise AttributeError
@@ -128,8 +128,8 @@ class SugarEntry:
         """
 
         connection = self._module._connection
-        result = connection.get_relationships(self._module._name,
-                                              self['id'], module._name.lower())
+        result = connection.get_relationships(self._module._name, self['id'],
+                                            module._name.lower(), '', ['id'])
 
         entries = []
         for elem in result['entry_list']:
