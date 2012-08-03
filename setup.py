@@ -6,23 +6,23 @@
 """
 
 import os
-#from setuptools import setup, find_packages
 from distutils.core import setup
 
-version = '0.1.0'
+version = '0.2.0'
 
-PACKAGES = ['sugarcrm'] #,'sugarcrm.Sugarcrm','sugarcrm.sugarbean']
+PACKAGES = ['sugarcrm']
             
 
 setup(name = 'sugarcrm',
       version = version,
-      description = "SugarCRM Python wrapper",
+      description = "SugarCRM Python library",
       author="Capstone Class, Kent State University",
-      url="http://github.com/jmertic/KSU_Capstone_Spring_2011_Python",
+      author_email="luis.barrueco@hash-tag.com.ar",
+      url="http://github.com/sugarcrm/python_webservices_library",
       classifiers=["Programming Language :: Python",
                    "Inteded Audience :: Developers",
                    "Topic :: Office/Business"],
       keywords="Customer Relationship Management SugarCRM CRM",
       packages=PACKAGES,
-      install_requires=['urllib','json','hashlib','sys']
+      install_requires=['urllib','json','hashlib','sys','unittest','HTMLParser']
 )
