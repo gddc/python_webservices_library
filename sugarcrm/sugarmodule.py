@@ -1,118 +1,206 @@
-#
-#   sugarmodule.py
-#
-#   KSU capstone project
-#
 
-from sugarentrylist import SugarEntryList
-from sugarbean import SugarBean
-import sugarcrm
+import itertools
 
-## Sugarmodule
-#  Abstract class which has ability to access and modify all entries in
-#    a sugarcrm module.
-class Sugarmodule:
+from sugarentry import SugarEntry
 
-    ## Sugarmodule constructor
-    # @param sugarconnection A sugarcrm connection
-    # @param module_name string of the correct module name
-    # @return object encapsulating various data connections
-    def __init__(self, sugarconnection, module_name):
-        if (sugarconnection.connected == 0):
-			raise GeneralException()
 
-        self.connection = sugarconnection
+class SugarModule:
+    """Defines a SugarCRM module.
 
-#        print "Creating module: "+module_name
+    This is used to perform module related tasks, such as queries and creating
+    new entries.
+    """
+    
+    def __init__(self, connection, name):
+        """Constructor for SugarCRM module.
 
-        m_fields = sugarconnection.get_module_fields(module_name)
-        self._cachedFields = m_fields['module_fields']
+        Keyword arguments:
+        connection -- Sugarcrm object to connect to a server
+        name -- name of SugarCRM module that this class will represent
+        """
+        self._name = name
+        self._connection = connection
+        
+        # Get the module fields through SugarCRM API.
+        result = self._connection.get_module_fields(self._name)
 
-        for field_name in self._cachedFields:
-            self.__dict__["find_by_"+field_name] = lambda q, _n=field_name: self.get_entries_where("%s.%s = '%s' " % (self.name.lower(), _n.lower(), q))
+        self._fields = result['module_fields']
+        self._relationships = result['link_fields'].copy()
 
-        self.relationships = m_fields['link_fields'].copy()
 
-        for link in self.relationships.values():
-            self.__dict__['link_to_'+link['name']] = lambda bean, fields = [], query = '', _a = link: self.get_relationships(bean = bean, module = _a['name'], query = query, fields = fields)
+    def _search(self, query_str, start = 0, total = 20, fields = []):
+        """Return a list of SugarEntry objects that match the query.
 
-#        print "LINK_NAMES:", type(m_fields['link_fields'])
-#        for link_name,i in m_fields['link_fields'].iteritems():
-#            print link_name,i
+        Keyword arguments:
+        query_str -- SQL query to be passed to the API
+        start -- Record offset to start from
+        total -- Maximum number of results to return
+        fields -- If set, return only the specified fields
+        """
 
-        self.name = module_name
-        self.prev_get_entries = {}
+        if 'id' not in fields:
+            fields.append('id')
+        
+        entry_list = []
+        count = 0
+        offset = 0
+        while count < total:
+            result = self._connection.get_entry_list(self._name,
+                            query_str, '', start + offset, fields,
+                            total - count, 0)
+            if result['result_count'] == 0:
+                break
+            else:
+                offset += result['result_count']
+                for i in range(result['result_count']):
+                    
+                    new_entry = SugarEntry(self)
 
-    def get_entry_with_id(self, id, fields = [], link_name_to_fields_array = []):
-        raw_bean = self.connection.get_entry(self.name, id, fields, link_name_to_fields_array)
-        print SugarBean(raw_bean)
+                    nvl = result['entry_list'][i]['name_value_list']
+                    for attribute in nvl:
+                        new_entry._fields[attribute] = nvl[attribute]['value']
+            
+                    # SugarCRM seems broken, because it retrieves several copies
+                    #  of the same contact for every opportunity related with
+                    #  it. Check to make sure we don't return duplicate entries.
+                    if new_entry['id'] not in [entry['id']
+                                                for entry in entry_list]:
+                        entry_list.append(new_entry)
+                        count += 1
+        
+        return entry_list
 
-    def get_entries(self, ids, fields = [], link_name_to_fields_array = []):
-        raw_bean_list = self.connection.get_entries(self.name, ids, fields, link_name_to_fields_array)
-        return sugarentrylist.SugarEntryList(raw_bean_list)
 
-    def get_entries_where(self, query, fields = [], offset = 0):
-        result = self.connection.get_entry_list( self.name, query, "", "", fields)
-        self.prev_get_entries['next_offset'] = result['next_offset']
-        self.prev_get_entries['query'] = query
-        self.prev_get_entries['fields'] = fields
-        return SugarEntryList(result)
+    def query(self):
+        """
+        Return a QueryList object for this SugarModule.
 
-    def get_fields(self):
-        if self._cachedFields:
-            return self._cachedFields
-        fields = self.sugarconnection.get_module_fields(self.name)
-        self._cachedFields = fields
-        return fields
+        Initially, it describes all the objects in the module. One can find
+        specific objects by calling 'filter' and 'exclude' on the returned
+        object.
+        """
 
-    def get_next(self):
-        result = self.get_entries_where(self.prev_get_entries['query'], self.prev_get_entries['fields'], self.prev_get_entries['next_offset'])
-        return result
+        return QueryList(self)
 
-    def get_all_entries_where(self, query = '', fields = []):
-        result = self.get_entries_where(query, fields)
-        while True:
-            result.data.extend(self.get_next().data)
-            if not self.prev_get_entries['next_offset']: break
-        return result
 
-    ## get_relationships
-    #   Retrieves the relationships between a specified bean and module 
-    #
-    def get_relationships(self, bean, module, query = '', fields = []):
-        if isinstance(bean, SugarBean): ids = [bean.id]
-        elif isinstance(bean, list): ids = [b.id for b in bean]
-        else: ids = [str(bean)]
-        link_name = ''
-        if isinstance(module, Sugarmodule):
-            for i,j in self.relationships.iteritems():
-                if j['module'] == module.name: link_name = j['name']; break
-        else: link_name = str(module).lower()
+class QueryList:
+    """Query a SugarCRM module for specific entries."""
 
-        if not link_name:
-            raise InvalidRelationship
+    def __init__(self, module, query = ''):
+        """Constructor for QueryList.
 
-        if len(ids) == 1:
-            result = self.connection.get_relationships(module = self.name, module_id = ids[0], link_field_name = link_name, related_module_query = fields)
+        Keyword arguments:
+        module -- SugarModule object to query
+        query -- SQL query to be passed to the API
+        """
+
+        self._module = module
+        self._query = query
+        self._next_items = []
+        self._offset = 0
+
+
+    def __iter__(self):
+        return self
+
+
+    def next(self):
+        try:
+            item = self._next_items[0]
+            self._next_items = self._next_items[1:]
+            return item
+        except IndexError:
+            self._next_items = self._module._search(self._query,
+                                                start = self._offset, total = 5)
+            self._offset += len(self._next_items)
+            if len(self._next_items) == 0:
+                raise StopIteration
+            else:
+                return self.next()
+
+    def __getitem__(self, index):
+        try:
+            return next(itertools.islice(self, index, index + 1))
+        except TypeError:
+            return list(itertools.islice(self, index.start, index.stop,
+                                            index.step))
+
+
+    def _build_query(self, **query):
+        """Build the API query string.
+        """
+
+        q_str = ''
+        for key in query.keys():
+            # Get the field and the operator from the query
+            key_field, key_sep, key_oper = key.partition('__')
+            if q_str != '':
+                q_str += ' AND '
+
+            if_cstm = ''
+            if key_field.endswith('_c'):
+                if_cstm = '_cstm'
+
+            field = self._module._name.lower() + if_cstm + '.' + key_field
+
+            if key_oper == 'exact':
+                q_str += '%s = "%s"' % (field, query[key])
+            elif key_oper == 'contains':
+                q_str += '%s LIKE "%%%s%%"' % (field, query[key])
+            elif key_oper == 'in':
+                q_str += '%s IN (' % field
+                for elem in query[key]:
+                    q_str += "'%s'," % elem
+                q_str = q_str.rstrip(',')
+                q_str += ')'
+            elif key_oper == 'gt':
+                q_str += '%s > "%s"' % (field, query[key])
+            elif key_oper == 'gte':
+                q_str += '%s >= "%s"' % (field, query[key])
+            elif key_oper == 'lt':
+                q_str += '%s < "%s"' % (field, query[key])
+            elif key_oper == 'lte':
+                q_str += '%s <= "%s"' % (field, query[key])
+            else:
+                raise LookupError('Unsupported operator')
+
+        return q_str
+
+
+    def filter(self, **query):
+        """Filter this QueryList, returning a new QueryList.
+
+        Keyword arguments:
+        query -- kwargs dictionary where the filters are specified:
+            The keys should be some of the module's field names, suffixed by
+            '__' and one of the following operators: 'exact', 'contains', 'in',
+            'gt', 'gte', 'lt' or 'lte'. When the operator is 'in', the
+            corresponding value MUST be a list.
+        """
+
+        if self._query != '':
+            query = '(%s) AND (%s)' % (self._query, self._build_query(**query))
         else:
-            result = [self.connection.get_relationships(module = self.name, module_id = id, link_field_name = link_name, related_module_query = fields) for id in ids];
-        return SugarEntryList(result)
+            query = self._build_query(**query)
 
-    ## info
-    # print a list of attributes describing the module
-    #
-    def info(self):
-        result  = 'name : %s\n' % (self.name)
-        result += '_'*6+'Fields'+'_'*18+'\t____Relationships'+'_'*10+'\n'
-        zzz = lambda s1,s2 : '%-29s\t%s\n' % ({True: s1, False: ''}[s1 != None], {True: s2, False: ''}[s2 != None])
-        for x in map(zzz, self._cachedFields, self.relationships) : result += x
-        print result
+        return QueryList(self._module, query)
 
-    def newBean(self, fields, values = None):
-        if isinstance(fields,dict): data = fields
-        else: data = dict( (f,v) for f,v in zip(fields, values) )
-        x = self.connection.set_entry(self.name, sugarcrm.toNameValueList(data) )
-        return x
 
-if __name__ == "__main__":
-    pass
+    def exclude(self, **query):
+        """Filter this QueryList, returning a new QueryList, as in filter(),
+        but excluding the entries that match the query.
+        """
+
+        if self._query != '':
+            query = '(%s) AND NOT (%s)' % (self._query, self._build_query(**query))
+        else:
+            query = 'NOT (%s)' % self._build_query(**query)
+
+        return QueryList(self._module, query)
+
+
+    def __len__(self):
+        result = self._module._connection.get_entries_count(
+                        self._module._name, self._query, 0)
+        return int(result['result_count'])
+
