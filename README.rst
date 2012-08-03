@@ -17,11 +17,11 @@ SugarCRM REST API.
 
 Usage
 -----
-You will find some examples of basic usage in EXAMPLES.py.
+You will find some examples of basic usage in EXAMPLES.py_.
 
 TODO
 ----
-Almost everything.
+- Improve unit testing.
 
 Licence
 -------
@@ -29,4 +29,5 @@ Licence
 AUTHORS_ file for more information.
 
 .. _here: https://github.com/sugarcrm/python_webservices_library/zipball/v0.1
+.. _EXAMPLES.py: https://github.com/sugarcrm/python_webservices_library/tree/master/EXAMPLES.py
 .. _AUTHORS: https://github.com/sugarcrm/python_webservices_library/tree/master/AUTHORS
