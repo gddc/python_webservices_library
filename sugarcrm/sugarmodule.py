@@ -25,7 +25,14 @@ class SugarModule:
         result = self._connection.get_module_fields(self._name)
 
         self._fields = result['module_fields']
-        self._relationships = result['link_fields'].copy()
+        
+        # In order to ensure that queries target the correct tables.
+        # Necessary to replace a call to self._name.lower() which
+        # was resulting in broken modules (ProductTemplates, etc).
+        self._table = result['table_name']
+        # If there aren't relationships the result here is an empty list
+        # which has no copy method.  Fixing to provide an empty default.
+        self._relationships = (result['link_fields'] or {}).copy()
 
 
     def _search(self, query_str, start = 0, total = 20, fields = []):
