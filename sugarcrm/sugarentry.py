@@ -48,8 +48,7 @@ class SugarEntry:
                 else:
                     # Retrieve the field from the SugarCRM connection.
                     
-                    q_str = self._module._name.lower() + \
-                                ".id='%s'" % self['id']
+                    q_str = "%s.id='%s'" % (self._module._table, self['id'])
                     res = self._module._connection.get_entry_list(
                                                     self._module._name, q_str,
                                                     '', 0, [field_name], 1, 0)
