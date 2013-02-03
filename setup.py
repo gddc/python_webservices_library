@@ -1,8 +1,8 @@
 """
     setupTools based setup script for
- 
+
     To install: python setup.py install
-    
+
 """
 
 import os
@@ -11,7 +11,7 @@ from distutils.core import setup
 version = '0.2.0'
 
 PACKAGES = ['sugarcrm']
-            
+
 
 setup(name = 'sugarcrm',
       version = version,
@@ -24,5 +24,4 @@ setup(name = 'sugarcrm',
                    "Topic :: Office/Business"],
       keywords="Customer Relationship Management SugarCRM CRM",
       packages=PACKAGES,
-      install_requires=['urllib','json','hashlib','sys','unittest','HTMLParser']
 )
