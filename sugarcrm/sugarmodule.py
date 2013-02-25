@@ -1,8 +1,7 @@
-
 import itertools
 
 from sugarentry import SugarEntry
-
+from collections import deque
 
 class SugarModule:
     """Defines a SugarCRM module.
@@ -23,6 +22,8 @@ class SugarModule:
         
         # Get the module fields through SugarCRM API.
         result = self._connection.get_module_fields(self._name)
+        if result is None:
+            return
 
         self._fields = result['module_fields']
         
@@ -35,47 +36,56 @@ class SugarModule:
         self._relationships = (result['link_fields'] or {}).copy()
 
 
-    def _search(self, query_str, start = 0, total = 20, fields = []):
-        """Return a list of SugarEntry objects that match the query.
+    def _search(self, query_str, start = 0, total = 20, fields = None, query = None):
+        """
+          Return a dictionary of records as well as pertinent query
+          statistics.
+
 
         Keyword arguments:
         query_str -- SQL query to be passed to the API
         start -- Record offset to start from
         total -- Maximum number of results to return
         fields -- If set, return only the specified fields
+        query -- The actual query class instance.
         """
 
+        if fields is None:
+            fields = []
         if 'id' not in fields:
             fields.append('id')
-        
-        entry_list = []
-        count = 0
-        offset = 0
-        while count < total:
-            result = self._connection.get_entry_list(self._name,
-                            query_str, '', start + offset, fields,
-                            total - count, 0)
-            if result['result_count'] == 0:
-                break
-            else:
-                offset += result['result_count']
-                for i in range(result['result_count']):
-                    
-                    new_entry = SugarEntry(self)
+        if 'name' not in fields:
+            fields.append('name')
 
-                    nvl = result['entry_list'][i]['name_value_list']
-                    for attribute in nvl:
-                        new_entry._fields[attribute] = nvl[attribute]['value']
-            
-                    # SugarCRM seems broken, because it retrieves several copies
-                    #  of the same contact for every opportunity related with
-                    #  it. Check to make sure we don't return duplicate entries.
-                    if new_entry['id'] not in [entry['id']
-                                                for entry in entry_list]:
-                        entry_list.append(new_entry)
-                        count += 1
-        
-        return entry_list
+        result = {}
+
+        entry_list = []
+        offset = 0
+        while len(entry_list) < total:
+            resp_data = self._connection.get_entry_list(self._name,
+                            query_str, '', start + offset, fields,
+                            total - len(entry_list), 0)
+            if resp_data['total_count']:
+                result['total'] = int(resp_data['total_count'], 10)
+            else:
+                result['total'] = 0
+            if resp_data['result_count'] == 0:
+                result['offset'] = 0
+                break
+
+            offset = result['offset'] = resp_data['next_offset']
+
+            for record in resp_data['entry_list']:
+                entry = SugarEntry(self)
+                for key, obj in record['name_value_list'].items():
+                    entry[key] = obj['value']
+                entry_list.append(entry)
+
+            if resp_data['result_count'] == int(resp_data['total_count'], 10):
+                break
+
+        result['entries'] = entry_list
+        return result
 
 
     def query(self):
@@ -103,8 +113,10 @@ class QueryList:
 
         self._module = module
         self._query = query
-        self._next_items = []
+        self._next_items = deque()
         self._offset = 0
+		self._total = -1
+		self._sent = 0
 
 
     def __iter__(self):
@@ -112,25 +124,27 @@ class QueryList:
 
 
     def next(self):
+        if self._sent == self._total:
+            raise StopIteration
         try:
-            item = self._next_items[0]
-            self._next_items = self._next_items[1:]
-            return item
+            entry = self._next_items.popleft()
+            self._sent += 1
+            return entry
         except IndexError:
-            self._next_items = self._module._search(self._query,
-                                                start = self._offset, total = 5)
-            self._offset += len(self._next_items)
-            if len(self._next_items) == 0:
-                raise StopIteration
-            else:
-                return self.next()
+            result = self._module._search(self._query, self._offset, 5)
+            self._total = result['total']
+            self._offset = result['offset']
+            self._next_items.extend(result['entries'])
+            return self.next()
 
     def __getitem__(self, index):
         try:
             return next(itertools.islice(self, index, index + 1))
         except TypeError:
-            return list(itertools.islice(self, index.start, index.stop,
-                                            index.step))
+            return list(itertools.islice(self,
+                                         index.start,
+                                         index.stop,
+                                         index.step))
 
 
     def _build_query(self, **query):
@@ -138,7 +152,7 @@ class QueryList:
         """
 
         q_str = ''
-        for key in query.keys():
+        for key, val in query.items():
             # Get the field and the operator from the query
             key_field, key_sep, key_oper = key.partition('__')
             if q_str != '':
@@ -151,23 +165,25 @@ class QueryList:
             field = self._module._name.lower() + if_cstm + '.' + key_field
 
             if key_oper == 'exact':
-                q_str += '%s = "%s"' % (field, query[key])
+                q_str += '%s = "%s"' % (field, val)
             elif key_oper == 'contains':
-                q_str += '%s LIKE "%%%s%%"' % (field, query[key])
+                q_str += '%s LIKE "%%%s%%"' % (field, val)
+            elif key_oper == 'sw':
+                q_str += '%s LIKE "%s%%"' % (field, val)
             elif key_oper == 'in':
                 q_str += '%s IN (' % field
-                for elem in query[key]:
+                for elem in val:
                     q_str += "'%s'," % elem
                 q_str = q_str.rstrip(',')
                 q_str += ')'
             elif key_oper == 'gt':
-                q_str += '%s > "%s"' % (field, query[key])
+                q_str += '%s > "%s"' % (field, val)
             elif key_oper == 'gte':
-                q_str += '%s >= "%s"' % (field, query[key])
+                q_str += '%s >= "%s"' % (field, val)
             elif key_oper == 'lt':
-                q_str += '%s < "%s"' % (field, query[key])
+                q_str += '%s < "%s"' % (field, val)
             elif key_oper == 'lte':
-                q_str += '%s <= "%s"' % (field, query[key])
+                q_str += '%s <= "%s"' % (field, val)
             else:
                 raise LookupError('Unsupported operator')
 
@@ -207,7 +223,8 @@ class QueryList:
 
 
     def __len__(self):
-        result = self._module._connection.get_entries_count(
-                        self._module._name, self._query, 0)
-        return int(result['result_count'])
+        if self._total == -1:
+            result = self._module._connection.get_entries_count(self._module._name, self._query, 0)
 
+            self._total = int(result['result_count'], 10)
+        return self._total
