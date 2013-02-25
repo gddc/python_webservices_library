@@ -28,7 +28,7 @@ class Sugarcrm:
         password -- password to allow login upon construction
         """
 
-        # String which holds the session id of the connection, requierd at
+        # String which holds the session id of the connection, required at
         # every call after 'login'.
         self._session = ""
 
@@ -63,6 +63,10 @@ class Sugarcrm:
                             self._login(self._username, self._password)
                             result = self._sendRequest(method_name,
                                               [self._session] + list(args))
+                        elif error.is_missing_module():
+                            return None
+                        elif error.is_null_response():
+                            return None
                         else:
                             raise SugarUnhandledException
 
@@ -71,17 +75,16 @@ class Sugarcrm:
                 return f
             self.__dict__[method] = gen(method)
 
-        # Add modules shortcuts
+        # Add modules containers
         self.modules = {}
-        rst_modules = self.get_available_modules()
-        for module_name in [module['module_key'] for
-                                            module in rst_modules['modules']]:
-            try:
-                module = SugarModule(self, module_name)
-                self.modules[module_name] = module
-            except:
-                pass
-
+        self.rst_modules = dict((m['module_key'], m)
+                                for m in self.get_available_modules()['modules'])
+    def __getitem__(self, key):
+        if key not in self.rst_modules:
+            raise KeyError("Invalid Key '%s'" % key)
+        if key in self.rst_modules and key not in self.modules:
+            self.modules[key] = SugarModule(self, key)
+        return self.modules[key]
 
     def _sendRequest(self, method, data):
         """Sends an API request to the server, returns a dictionary with the
@@ -101,7 +104,12 @@ class Sugarcrm:
                 'response_type' : 'json', 'rest_data' : data}
         params = urllib.urlencode(args)
         response = urllib.urlopen(self._url, params)
-        response = response.read()
+        response = response.read().strip()
+
+        if not response:
+            raise SugarError({'name': 'Empty Result',
+                              'description': 'No data from SugarCRM.',
+                              'number': 0})
 
         result = json.loads(response)
 
