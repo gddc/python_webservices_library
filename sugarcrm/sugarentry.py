@@ -125,21 +125,28 @@ class SugarEntry:
         self._module._connection.relate(self, related)
 
 
-    def get_related(self, module):
+    def get_related(self, module, fields = None):
         """Return the related entries in another module.
 
         Keyword arguments:
         module -- related SugarModule object
         """
 
+        if fields is None:
+            fields = ['id']
+
         connection = self._module._connection
+        # Accomodate retrieval of modules by name.
+        if isinstance(module, basestring):
+            module = connection[module]
         result = connection.get_relationships(self._module._name, self['id'],
-                                            module._name.lower(), '', ['id'])
+                                              module._name.lower(), '', fields)
 
         entries = []
         for elem in result['entry_list']:
             entry = SugarEntry(module)
-            entry._fields['id'] = elem['id']
+            for name, field in elem['name_value_list'].items():
+                entry._fields[name] = field['value']
             entries.append(entry)
 
         return entries
