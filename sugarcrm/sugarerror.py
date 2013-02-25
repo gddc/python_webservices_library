@@ -16,6 +16,11 @@ class SugarError(Exception):
     def is_invalid_login(self):
         return self.number == 10
 
+    def is_missing_module(self):
+        return self.number == 20
+
+    def is_null_response(self):
+        return self.number == 0
 
 class SugarUnhandledException(Exception):
     pass
@@ -23,7 +28,8 @@ class SugarUnhandledException(Exception):
 
 def is_error(data):
     try:
+        if data['name'] in ('Module Does Not Exist',):
+            return True
         return data["name"] != None and data["description"] != None
     except KeyError:
         return False
-
