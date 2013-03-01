@@ -31,43 +31,40 @@ class SugarEntry:
         return unicode(self).encode('utf-8')
 
 
+    def _retrieve(self, fieldlist, force = False):
+        qstring = "%s.id = '%s'" % (self._module._table, self['id'])
+        if not force:
+            fieldlist = set(fieldlist) - set(self._fields.keys())
+        if not fieldlist:
+            return
+        res = self._module._connection.get_entry_list(self._module._name,
+                                                      qstring, '', 0,
+                                                      list(fieldlist), 1, 0)
+        for prop, obj in res['entry_list'][0]['name_value_list'].items():
+            if obj['value']:
+                self[prop] = HTMLParser().unescape(obj['value'])
+            else:
+                self[prop] = ''
+
+
     def __getitem__(self, field_name):
         """Return the value of the field 'field_name' of this SugarEntry.
 
         Keyword arguments:
-        field_name -- name of the field to be retrieved
+        field_name -- name of the field to be retrieved. Supports a tuple
+                      of fields, in which case the return is a tuple.
         """
 
-        if field_name in self._module._fields.keys():
-            try:
-                return self._fields[field_name]
-            except KeyError:
-                if self['id'] == '':
-                    # If this is a new entry, the 'id' field is yet undefined.
-                    return ''
-                else:
-                    # Retrieve the field from the SugarCRM connection.
-                    
-                    q_str = "%s.id='%s'" % (self._module._table, self['id'])
-                    res = self._module._connection.get_entry_list(
-                                                    self._module._name, q_str,
-                                                    '', 0, [field_name], 1, 0)
+        if isinstance(field_name, tuple):
+            self._retrieve(field_name)
+            return tuple(self[n] for n in field_name)
 
-                    nvl = res['entry_list'][0]['name_value_list']
-                    for attribute in nvl:
-                        if attribute == field_name:
-                            value = nvl[attribute]['value']
-                            if value:
-                                self._fields[attribute] = \
-                                                HTMLParser().unescape(
-                                                    nvl[attribute]['value'])
-                            else:
-                                self._fields[attribute] = ''
-
-                            return self._fields[attribute]
-
-        else:
+        if field_name not in self._module._fields:
             raise AttributeError
+
+        if field_name not in self._fields:
+            self._retrieve([field_name])
+        return self._fields[field_name]
 
 
     def __setitem__(self, field_name, value):
@@ -78,7 +75,7 @@ class SugarEntry:
         value -- new value for the field
         """
 
-        if field_name in self._module._fields.keys():
+        if field_name in self._module._fields:
             self._fields[field_name] = value
             if field_name not in self._dirty_fields:
                 self._dirty_fields.append(field_name)
@@ -102,14 +99,15 @@ class SugarEntry:
         nvl = []
         for field in set(self._dirty_fields):
             # Define an individual name_value record.
-            nv = {}
-            nv['name'] = field
-            nv['value'] = self[field]
+            nv = dict(name = field, value = self[field])
             nvl.append(nv)
         
         # Use the API's set_entry to update the entry in SugarCRM.
         result = self._module._connection.set_entry(self._module._name, nvl)
-        self._fields['id'] = result['id']
+        try:
+            self._fields['id'] = result['id']
+        except:
+            print result
         self._dirty_fields = []
 
         return True
