@@ -88,7 +88,7 @@ class SugarModule:
         return result
 
 
-    def query(self):
+    def query(self, fields = None):
         """
         Return a QueryList object for this SugarModule.
 
@@ -97,13 +97,13 @@ class SugarModule:
         object.
         """
 
-        return QueryList(self)
+        return QueryList(self, fields = fields)
 
 
 class QueryList:
     """Query a SugarCRM module for specific entries."""
 
-    def __init__(self, module, query = ''):
+    def __init__(self, module, query = '', fields = None):
         """Constructor for QueryList.
 
         Keyword arguments:
@@ -115,8 +115,9 @@ class QueryList:
         self._query = query
         self._next_items = deque()
         self._offset = 0
-		self._total = -1
-		self._sent = 0
+        self._total = -1
+        self._sent = 0
+        self._fields = fields
 
 
     def __iter__(self):
@@ -131,7 +132,7 @@ class QueryList:
             self._sent += 1
             return entry
         except IndexError:
-            result = self._module._search(self._query, self._offset, 5)
+            result = self._module._search(self._query, self._offset, 5, self._fields)
             self._total = result['total']
             self._offset = result['offset']
             self._next_items.extend(result['entries'])
@@ -206,7 +207,7 @@ class QueryList:
         else:
             query = self._build_query(**query)
 
-        return QueryList(self._module, query)
+        return QueryList(self._module, query, fields = self._fields)
 
 
     def exclude(self, **query):
@@ -219,7 +220,7 @@ class QueryList:
         else:
             query = 'NOT (%s)' % self._build_query(**query)
 
-        return QueryList(self._module, query)
+        return QueryList(self._module, query, fields = self._fields)
 
 
     def __len__(self):
