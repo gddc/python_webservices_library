@@ -141,8 +141,9 @@ class Sugarcrm:
         """Relate two SugarEntry objects."""
 
         self.set_relationship(main._module._name,
-                            main['id'], secondary._module._name.lower(),
-                            [secondary['id']])
+                              main['id'],
+                              secondary._module._table,
+                              [secondary['id']])
 
 
 def _passencode(password):
