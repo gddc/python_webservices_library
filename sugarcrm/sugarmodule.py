@@ -1,5 +1,5 @@
 import itertools
-
+from HTMLParser import HTMLParser
 from sugarentry import SugarEntry
 from collections import deque
 
@@ -9,7 +9,7 @@ class SugarModule:
     This is used to perform module related tasks, such as queries and creating
     new entries.
     """
-    
+
     def __init__(self, connection, name):
         """Constructor for SugarCRM module.
 
@@ -19,14 +19,14 @@ class SugarModule:
         """
         self._name = name
         self._connection = connection
-        
+
         # Get the module fields through SugarCRM API.
         result = self._connection.get_module_fields(self._name)
         if result is None:
             return
 
         self._fields = result['module_fields']
-        
+
         # In order to ensure that queries target the correct tables.
         # Necessary to replace a call to self._name.lower() which
         # was resulting in broken modules (ProductTemplates, etc).
@@ -78,7 +78,7 @@ class SugarModule:
             for record in resp_data['entry_list']:
                 entry = SugarEntry(self)
                 for key, obj in record['name_value_list'].items():
-                    entry[key] = obj['value']
+                    entry[key] = HTMLParser().unescape(obj['value'])
                 entry_list.append(entry)
 
             if resp_data['result_count'] == int(resp_data['total_count'], 10):
