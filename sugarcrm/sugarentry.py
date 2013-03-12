@@ -2,7 +2,7 @@ from HTMLParser import HTMLParser
 
 class SugarEntry:
     """Define an entry of a SugarCRM module."""
-    
+
     def __init__(self, module):
         """Represents a new or an existing entry.
 
@@ -12,11 +12,11 @@ class SugarEntry:
 
         # Keep a reference to the parent module.
         self._module = module
-        
+
         # Keep a mapping 'field_name' => value for every valid field retrieved.
         self._fields = {}
         self._dirty_fields = []
-        
+
         # Make sure that the 'id' field is always defined.
         if 'id' not in self._fields.keys():
             self._fields['id'] = ''
@@ -60,7 +60,7 @@ class SugarEntry:
             return tuple(self[n] for n in field_name)
 
         if field_name not in self._module._fields:
-            raise AttributeError
+            raise AttributeError("Invalid field '%s'" % field_name)
 
         if field_name not in self._fields:
             self._retrieve([field_name])
@@ -80,7 +80,7 @@ class SugarEntry:
             if field_name not in self._dirty_fields:
                 self._dirty_fields.append(field_name)
         else:
-            raise AttributeError
+            raise AttributeError("Invalid field '%s'" % field_name)
 
 
     def save(self):
@@ -94,14 +94,14 @@ class SugarEntry:
         # way the entry will be updated in the SugarCRM connection.
         if self['id'] != '':
             self._dirty_fields.append('id')
-        
+
         # nvl is the name_value_list, which has the list of attributes.
         nvl = []
         for field in set(self._dirty_fields):
             # Define an individual name_value record.
             nv = dict(name = field, value = self[field])
             nvl.append(nv)
-        
+
         # Use the API's set_entry to update the entry in SugarCRM.
         result = self._module._connection.set_entry(self._module._name, nvl)
         try:
