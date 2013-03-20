@@ -19,7 +19,7 @@ class Sugarcrm:
     server.
     """
     
-    def __init__(self, url, username, password):
+    def __init__(self, url, username, password, is_ldap_member=False):
         """Constructor for Sugarcrm connection.
 
         Keyword arguments:
@@ -39,7 +39,7 @@ class Sugarcrm:
         self._password = password
 
         # Attempt to login.
-        self._login(username, password)
+        self._login(username, password, is_ldap_member)
 
         # Dynamically add the API methods to the object.
         for method in ['get_user_id', 'get_user_team_id',
@@ -111,20 +111,25 @@ class Sugarcrm:
         return result
 
 
-    def _login(self, username, password):
-        """Estabilsh connection to the server.
+    def _login(self, username, password, is_ldap_member):
+        """Establish connection to the server.
 
         Keyword arguments:
         username -- SugarCRM user name.
         password -- plaintext string of the user's password.
         """
 
-        args = {'user_auth' : {'user_name' : username,
-                               'password' : _passencode(password)}}
+        if is_ldap_member:
+            password_used = password
+        else:
+            password_used = self._passencode(password)
+
+        args = {'user_auth': {'user_name': username,
+                               'password': password_used}}
 
         x = self._sendRequest('login', args)
         try:
-            self._session = x["id"]
+            self._session = x['id']
         except KeyError:
             raise SugarUnhandledException
 
@@ -137,15 +142,15 @@ class Sugarcrm:
                             [secondary['id']])
 
 
-def _passencode(password):
-    """Returns md5 hash to send as a password.
+    def _passencode(self, password):
+        """Returns md5 hash to send as a password.
 
-    Keyword arguments:
-    password -- string to be encoded
-    """
+        Keyword arguments:
+        password -- string to be encoded
+        """
 
-    encode = hashlib.md5(password)
-    result = encode.hexdigest()
+        encode = hashlib.md5(password)
+        result = encode.hexdigest()
 
-    return result
+        return result
 
