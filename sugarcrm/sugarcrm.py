@@ -72,15 +72,8 @@ class Sugarcrm:
             self.__dict__[method] = gen(method)
 
         # Add modules shortcuts
-        self.modules = {}
-        rst_modules = self.get_available_modules()
-        for module_name in [module['module_key'] for
-                                            module in rst_modules['modules']]:
-            try:
-                module = SugarModule(self, module_name)
-                self.modules[module_name] = module
-            except:
-                pass
+        self.modules = Sugarcrm._ModuleList(self,
+                                  self.get_available_modules())
 
 
     def _sendRequest(self, method, data):
@@ -153,4 +146,25 @@ class Sugarcrm:
         result = encode.hexdigest()
 
         return result
+
+
+    class _ModuleList:
+        def __init__(self, connection, module_list):
+            self._connection = connection
+            self._modules = {}
+            self._module_list = [module['module_key'] for
+                                 module in module_list['modules']]
+
+        def __getitem__(self, item):
+            # Retrieve the module information only if we haven't done
+            # that before.
+            if self._modules.has_key(item):
+                return self._modules[item]
+            else:
+                if item in self._module_list:
+                    module = SugarModule(self._connection, item)
+                    self._modules[item] = module
+                    return module
+                else:
+                    raise KeyError, "Module %s doesn't exist" % item
 
