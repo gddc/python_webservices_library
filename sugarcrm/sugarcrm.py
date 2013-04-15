@@ -137,13 +137,13 @@ class Sugarcrm:
             raise SugarUnhandledException
 
 
-    def relate(self, main, secondary):
+    def relate(self, main, *secondary):
         """Relate two SugarEntry objects."""
 
-        self.set_relationship(main._module._name,
-                              main['id'],
-                              secondary._module._table,
-                              [secondary['id']])
+        self.set_relationships([main._module._name] * len(secondary),
+                               [main['id']] * len(secondary),
+                               [s._module._table for s in secondary],
+                               [[s['id']] for s in secondary])
 
 
 def _passencode(password):
