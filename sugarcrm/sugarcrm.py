@@ -139,11 +139,15 @@ class Sugarcrm:
 
     def relate(self, main, *secondary):
         """Relate two SugarEntry objects."""
-
-        self.set_relationships([main._module._name] * len(secondary),
-                               [main['id']] * len(secondary),
-                               [s._module._table for s in secondary],
-                               [[s['id']] for s in secondary])
+        args = [[main._module._name] * len(secondary),
+                [main['id']] * len(secondary),
+                [s._module._table for s in secondary],
+                [[s['id']] for s in secondary]]
+        # Required for Sugar Bug 32064.
+        if main._module._name == 'ProductBundles':
+            args.append([{'name': 'product_index',
+                          'value': '%d' % i + 1}] for i in range(len(secondary)))
+        self.set_relationships(*args)
 
 
 def _passencode(password):
