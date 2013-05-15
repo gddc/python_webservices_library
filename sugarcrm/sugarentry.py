@@ -115,17 +115,18 @@ class SugarEntry:
         return True
 
 
-    def relate(self, related):
+    def relate(self, related, relation=None):
         """Relate this SugarEntry with the one passed as a parameter.
 
         Keyword arguments:
         related -- the secondary SugarEntry object in the relationship
+        relation -- the name of the relationship, if it can't be derived
         """
 
-        self._module._connection.relate(self, related)
+        self._module._connection.relate(self, related, relation)
 
 
-    def get_related(self, module):
+    def get_related(self, module, relation=None):
         """Return the related entries in another module.
 
         Keyword arguments:
@@ -133,8 +134,11 @@ class SugarEntry:
         """
 
         connection = self._module._connection
+        if relation == None:
+            relation = connection._get_relation_names(self._module, module)
+
         result = connection.get_relationships(self._module._name, self['id'],
-                                            module._name.lower(), '', ['id'])
+                                              relation, '', ['id'])
 
         entries = []
         for elem in result['entry_list']:

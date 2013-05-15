@@ -8,6 +8,7 @@ import urllib
 import hashlib
 import json
 import sys
+import re
 
 from sugarerror import SugarError, SugarUnhandledException, is_error
 from sugarmodule import *
@@ -72,8 +73,17 @@ class Sugarcrm:
             self.__dict__[method] = gen(method)
 
         # Add modules shortcuts
-        self.modules = Sugarcrm._ModuleList(self,
-                                  self.get_available_modules())
+        self.modules = {}
+        rst_modules = self.get_available_modules()
+        for module_name in [module['module_key'] for
+                                            module in rst_modules['modules']]:
+            try:
+                module = SugarModule(self, module_name)
+                self.modules[module_name] = module
+            except:
+                pass
+
+        self.name_re = re.compile(r'([A-Z][^A-Z]*)')
 
 
     def _sendRequest(self, method, data):
@@ -127,12 +137,41 @@ class Sugarcrm:
             raise SugarUnhandledException
 
 
-    def relate(self, main, secondary):
+    def relate(self, main, secondary, relation=None):
         """Relate two SugarEntry objects."""
 
+        if relation == None:
+            relation = self._get_relation_names(main._module, secondary._module)
+
         self.set_relationship(main._module._name,
-                            main['id'], secondary._module._name.lower(),
+                            main['id'], relation,
                             [secondary['id']])
+
+    def _get_relation_names(self, main, secondary):
+        '''
+        Find the relation name or return ''
+        main -- The module to find relation names
+        secondary -- The module with the name to match
+        '''
+
+        # get the list of relationships of this module
+        relations = set(main._relationships.keys())
+        name = secondary._name
+
+        # bail out early if lower() works
+        lower_name = name.lower()
+        if lower_name in relations:
+            return lower_name
+
+        # other modules split on capital letters and replace with a _
+        under_names = filter(None, self.name_re.split(name))
+        if under_names is not None:
+            under_name = '_'.join([s.lower() for s in under_names])
+            if under_name in relations:
+                return under_name
+
+        return ''
+
 
 
     def _passencode(self, password):
