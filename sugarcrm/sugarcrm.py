@@ -73,15 +73,8 @@ class Sugarcrm:
             self.__dict__[method] = gen(method)
 
         # Add modules shortcuts
-        self.modules = {}
-        rst_modules = self.get_available_modules()
-        for module_name in [module['module_key'] for
-                                            module in rst_modules['modules']]:
-            try:
-                module = SugarModule(self, module_name)
-                self.modules[module_name] = module
-            except:
-                pass
+        self.modules = Sugarcrm._ModuleList(self,
+                                  self.get_available_modules())
 
         self.name_re = re.compile(r'([A-Z][^A-Z]*)')
 
