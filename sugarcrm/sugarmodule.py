@@ -99,6 +99,13 @@ class SugarModule:
 
         return QueryList(self, fields = fields)
 
+    def search(self, value):
+        """
+        Attempt to search for matching records for this module.
+        """
+
+        resp_data = self._connection.search_by_module(value, [self._name])
+
 
 class QueryList:
     """Query a SugarCRM module for specific entries."""
