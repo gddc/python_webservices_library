@@ -145,8 +145,8 @@ class Sugarcrm:
                 [[s['id']] for s in secondary]]
         # Required for Sugar Bug 32064.
         if main._module._name == 'ProductBundles':
-            args.append([{'name': 'product_index',
-                          'value': '%d' % i + 1}] for i in range(len(secondary)))
+            args.append([[{'name': 'product_index',
+                          'value': '%d' % (i + 1)}] for i in range(len(secondary))])
         self.set_relationships(*args)
 
 
