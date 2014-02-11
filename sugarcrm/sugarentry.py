@@ -1,7 +1,11 @@
 from HTMLParser import HTMLParser
+from collections import defaultdict
+from itertools import count
 
 class SugarEntry:
     """Define an entry of a SugarCRM module."""
+    _hashes = defaultdict(count(1).next)
+    
 
     def __init__(self, module):
         """Represents a new or an existing entry.
@@ -20,6 +24,10 @@ class SugarEntry:
         # Make sure that the 'id' field is always defined.
         if 'id' not in self._fields.keys():
             self._fields['id'] = ''
+            
+            
+    def __hash__(self):
+        return self._hashes['%s-%s' % (self._module._name, self['id'])] 
 
 
     def __unicode__(self):
