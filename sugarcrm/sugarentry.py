@@ -48,7 +48,7 @@ class SugarEntry:
         res = self._module._connection.get_entry_list(self._module._name,
                                                       qstring, '', 0,
                                                       list(fieldlist), 1, 0)
-        if not res['entry_list']:
+        if not res['entry_list'] or not res['entry_list'][0]['name_value_list']:
             for field in fieldlist:
                 self[field] = ''
             return
