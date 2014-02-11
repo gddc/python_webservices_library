@@ -3,6 +3,8 @@ from HTMLParser import HTMLParser
 from sugarentry import SugarEntry
 from collections import deque
 
+HTMLP = HTMLParser()
+
 class SugarModule:
     """Defines a SugarCRM module.
 
@@ -78,7 +80,7 @@ class SugarModule:
             for record in resp_data['entry_list']:
                 entry = SugarEntry(self)
                 for key, obj in record['name_value_list'].items():
-                    entry[key] = HTMLParser().unescape(obj['value'])
+                    entry[key] = HTMLP.unescape(obj['value'])
                 entry_list.append(entry)
 
             if resp_data['result_count'] == int(resp_data['total_count'], 10):
@@ -105,6 +107,17 @@ class SugarModule:
         """
 
         resp_data = self._connection.search_by_module(value, [self._name])
+        results = []
+        for mod_results in resp_data['entry_list']:
+            if mod_results['name'] != self._name:
+                continue
+            for record in mod_results['records']:
+                entry = SugarEntry(self)
+                for key, obj in record.items():
+                    entry[key] = HTMLP.unescape(obj['value'])
+                results.append(entry)
+        return results
+
 
 
 class QueryList:
@@ -126,10 +139,8 @@ class QueryList:
         self._sent = 0
         self._fields = fields
 
-
     def __iter__(self):
         return self
-
 
     def next(self):
         if self._sent == self._total:
@@ -172,7 +183,7 @@ class QueryList:
 
             field = self._module._name.lower() + if_cstm + '.' + key_field
 
-            if key_oper == 'exact':
+            if key_oper in ('exact', 'eq'):
                 q_str += '%s = "%s"' % (field, val)
             elif key_oper == 'contains':
                 q_str += '%s LIKE "%%%s%%"' % (field, val)
