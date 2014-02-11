@@ -43,14 +43,14 @@ class Sugarcrm:
 
         # Dynamically add the API methods to the object.
         for method in ['get_user_id', 'get_user_team_id',
-                        'get_available_modules', 'get_module_fields',
-                        'get_entries_count', 'get_entry', 'get_entries',
-                        'get_entry_list', 'set_entry', 'set_entries',
-                        'set_relationship', 'set_relationships',
-                        'get_relationships', 'get_server_info',
-                        'set_note_attachment', 'get_note_attachment',
-                        'set_document_revision', 'get_document_revision',
-                        'search_by_module', 'get_report_entries', 'logout']:
+                       'get_available_modules', 'get_module_fields',
+                       'get_entries_count', 'get_entry', 'get_entries',
+                       'get_entry_list', 'set_entry', 'set_entries',
+                       'set_relationship', 'set_relationships',
+                       'get_relationships', 'get_server_info',
+                       'set_note_attachment', 'get_note_attachment',
+                       'set_document_revision', 'get_document_revision',
+                       'search_by_module', 'get_report_entries', 'logout']:
             # Use this to be able to evaluate "method".
             def gen(method_name):
                 def f(*args):
@@ -71,7 +71,7 @@ class Sugarcrm:
                             raise SugarUnhandledException
 
                     return result
-
+                f.__name__ = method
                 return f
             self.__dict__[method] = gen(method)
 
