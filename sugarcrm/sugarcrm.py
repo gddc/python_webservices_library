@@ -68,10 +68,13 @@ class Sugarcrm:
                         elif error.is_null_response():
                             return None
                         else:
-                            raise SugarUnhandledException
+                            raise SugarUnhandledException('%d, %s - %s' %
+                                                          (error.number,
+                                                           error.name,
+                                                           error.description))
 
                     return result
-                f.__name__ = method
+                f.__name__ = method_name
                 return f
             self.__dict__[method] = gen(method)
 
@@ -137,11 +140,21 @@ class Sugarcrm:
             raise SugarUnhandledException
 
 
-    def relate(self, main, *secondary):
-        """Relate two SugarEntry objects."""
+    def relate(self, main, *secondary, **kwargs):
+        """
+          Relate two or more SugarEntry objects.
+
+          Supported Keywords:
+          relateby -> iterable of relationship names.  Should match the
+                      length of *secondary.  Defaults to secondary
+                      module table names (appropriate for most
+                      predefined relationships).
+        """
+
+        relateby = kwargs.pop('relateby', [s._module._table for s in secondary])
         args = [[main._module._name] * len(secondary),
                 [main['id']] * len(secondary),
-                [s._module._table for s in secondary],
+                relateby,
                 [[s['id']] for s in secondary]]
         # Required for Sugar Bug 32064.
         if main._module._name == 'ProductBundles':

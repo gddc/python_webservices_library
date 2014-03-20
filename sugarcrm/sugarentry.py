@@ -125,14 +125,14 @@ class SugarEntry:
         return True
 
 
-    def relate(self, *related):
+    def relate(self, *related, **kwargs):
         """Relate this SugarEntry with the one passed as a parameter.
 
         Keyword arguments:
         related -- the secondary SugarEntry object in the relationship
         """
 
-        self._module._connection.relate(self, *related)
+        self._module._connection.relate(self, *related, **kwargs)
 
 
     def get_related(self, module, fields = None):
