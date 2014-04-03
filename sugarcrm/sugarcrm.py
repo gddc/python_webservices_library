@@ -29,7 +29,7 @@ class Sugarcrm:
         password -- password to allow login upon construction
         """
 
-        # String which holds the session id of the connection, requierd at
+        # String which holds the session id of the connection, required at
         # every call after 'login'.
         self._session = ""
 
@@ -38,20 +38,21 @@ class Sugarcrm:
 
         self._username = username
         self._password = password
+        self._isldap = is_ldap_member
 
         # Attempt to login.
-        self._login(username, password, is_ldap_member)
+        self._login()
 
         # Dynamically add the API methods to the object.
         for method in ['get_user_id', 'get_user_team_id',
-                        'get_available_modules', 'get_module_fields',
-                        'get_entries_count', 'get_entry', 'get_entries',
-                        'get_entry_list', 'set_entry', 'set_entries',
-                        'set_relationship', 'set_relationships',
-                        'get_relationships', 'get_server_info',
-                        'set_note_attachment', 'get_note_attachment',
-                        'set_document_revision', 'get_document_revision',
-                        'search_by_module', 'get_report_entries', 'logout']:
+                       'get_available_modules', 'get_module_fields',
+                       'get_entries_count', 'get_entry', 'get_entries',
+                       'get_entry_list', 'set_entry', 'set_entries',
+                       'set_relationship', 'set_relationships',
+                       'get_relationships', 'get_server_info',
+                       'set_note_attachment', 'get_note_attachment',
+                       'set_document_revision', 'get_document_revision',
+                       'search_by_module', 'get_report_entries', 'logout']:
             # Use this to be able to evaluate "method".
             def gen(method_name):
                 def f(*args):
@@ -61,22 +62,34 @@ class Sugarcrm:
                     except SugarError, error:
                         if error.is_invalid_session():
                             # Try to recover if session ID was lost
-                            self._login(self._username, self._password)
+                            self._login()
                             result = self._sendRequest(method_name,
                                               [self._session] + list(args))
+                        elif error.is_missing_module():
+                            return None
+                        elif error.is_null_response():
+                            return None
                         else:
-                            raise SugarUnhandledException
+                            raise SugarUnhandledException('%d, %s - %s' %
+                                                          (error.number,
+                                                           error.name,
+                                                           error.description))
 
                     return result
-
+                f.__name__ = method_name
                 return f
             self.__dict__[method] = gen(method)
 
-        # Add modules shortcuts
-        self.modules = Sugarcrm._ModuleList(self,
-                                  self.get_available_modules())
-
-        self.name_re = re.compile(r'([A-Z][^A-Z]*)')
+        # Add modules containers
+        self.modules = {}
+        self.rst_modules = dict((m['module_key'], m)
+                                for m in self.get_available_modules()['modules'])
+    def __getitem__(self, key):
+        if key not in self.rst_modules:
+            raise KeyError("Invalid Key '%s'" % key)
+        if key in self.rst_modules and key not in self.modules:
+            self.modules[key] = SugarModule(self, key)
+        return self.modules[key]
 
 
     def _sendRequest(self, method, data):
@@ -97,31 +110,24 @@ class Sugarcrm:
                 'response_type' : 'json', 'rest_data' : data}
         params = urllib.urlencode(args)
         response = urllib.urlopen(self._url, params)
-        response = response.read()
-
+        response = response.read().strip()
+        if not response:
+            raise SugarError({'name': 'Empty Result',
+                              'description': 'No data from SugarCRM.',
+                              'number': 0})
         result = json.loads(response)
-
         if is_error(result):
             raise SugarError(result)
-
         return result
 
 
-    def _login(self, username, password, is_ldap_member):
-        """Establish connection to the server.
-
-        Keyword arguments:
-        username -- SugarCRM user name.
-        password -- plaintext string of the user's password.
+    def _login(self):
+        """
+            Establish connection to the server.
         """
 
-        if is_ldap_member:
-            password_used = password
-        else:
-            password_used = self._passencode(password)
-
-        args = {'user_auth': {'user_name': username,
-                               'password': password_used}}
+        args = {'user_auth': {'user_name': self._username,
+                              'password': self.password}}
 
         x = self._sendRequest('login', args)
         try:
@@ -130,73 +136,40 @@ class Sugarcrm:
             raise SugarUnhandledException
 
 
-    def relate(self, main, secondary, relation=None):
-        """Relate two SugarEntry objects."""
+    def relate(self, main, *secondary, **kwargs):
+        """
+          Relate two or more SugarEntry objects.
 
-        if relation == None:
-            relation = self._get_relation_names(main._module, secondary._module)
+          Supported Keywords:
+          relateby -> iterable of relationship names.  Should match the
+                      length of *secondary.  Defaults to secondary
+                      module table names (appropriate for most
+                      predefined relationships).
+        """
 
-        self.set_relationship(main._module._name,
-                            main['id'], relation,
-                            [secondary['id']])
+        relateby = kwargs.pop('relateby', [s._module._table for s in secondary])
+        args = [[main._module._name] * len(secondary),
+                [main['id']] * len(secondary),
+                relateby,
+                [[s['id']] for s in secondary]]
+        # Required for Sugar Bug 32064.
+        if main._module._name == 'ProductBundles':
+            args.append([[{'name': 'product_index',
+                          'value': '%d' % (i + 1)}] for i in range(len(secondary))])
+        self.set_relationships(*args)
 
-    def _get_relation_names(self, main, secondary):
-        '''
-        Find the relation name or return ''
-        main -- The module to find relation names
-        secondary -- The module with the name to match
-        '''
-
-        # get the list of relationships of this module
-        relations = set(main._relationships.keys())
-        name = secondary._name
-
-        # bail out early if lower() works
-        lower_name = name.lower()
-        if lower_name in relations:
-            return lower_name
-
-        # other modules split on capital letters and replace with a _
-        under_names = filter(None, self.name_re.split(name))
-        if under_names is not None:
-            under_name = '_'.join([s.lower() for s in under_names])
-            if under_name in relations:
-                return under_name
-
-        return ''
-
-
-
-    def _passencode(self, password):
-        """Returns md5 hash to send as a password.
+    @property
+    def password(self):
+        """
+            Returns an appropriately encoded password for this connection.
+            - md5 hash for standard login.
+            - plain text for ldap users
 
         Keyword arguments:
         password -- string to be encoded
         """
-
-        encode = hashlib.md5(password)
+        if self._isldap:
+            return self._password
+        encode = hashlib.md5(self._password)
         result = encode.hexdigest()
-
         return result
-
-
-    class _ModuleList:
-        def __init__(self, connection, module_list):
-            self._connection = connection
-            self._modules = {}
-            self._module_list = [module['module_key'] for
-                                 module in module_list['modules']]
-
-        def __getitem__(self, item):
-            # Retrieve the module information only if we haven't done
-            # that before.
-            if self._modules.has_key(item):
-                return self._modules[item]
-            else:
-                if item in self._module_list:
-                    module = SugarModule(self._connection, item)
-                    self._modules[item] = module
-                    return module
-                else:
-                    raise KeyError, "Module %s doesn't exist" % item
-
