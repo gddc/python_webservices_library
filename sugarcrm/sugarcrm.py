@@ -59,7 +59,7 @@ class Sugarcrm:
                     try:
                         result = self._sendRequest(method_name,
                                               [self._session] + list(args))
-                    except SugarError, error:
+                    except (SugarError, error):
                         if error.is_invalid_session():
                             # Try to recover if session ID was lost
                             self._login()
