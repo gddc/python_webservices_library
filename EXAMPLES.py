@@ -15,10 +15,10 @@ password = 'admin'
 conn = sugarcrm.Sugarcrm(url, username, password)
 
 # This way you query all the Contacts in your CRM...
-query = conn.modules['Contacts'].query()
+query = conn['Contacts'].query()
 # ... but we just show the first ten of them.
 for contact in query[:10]:
-    print contact['first_name'] + ' ' + contact['last_name']
+    print ' '.join(contact['first_name', 'last_name'])
 
 # OUTPUT:
 # Darrin Adger
@@ -33,11 +33,11 @@ for contact in query[:10]:
 # Gil Batten
 
 # We define a new query, but this time we specify a couple of query exclusions.
-query = conn.modules['Contacts'].query()
+query = conn['Contacts'].query()
 new_query = query.exclude(last_name__exact = 'Bassler')
 new_query = new_query.exclude(first_name__exact = 'Morris')
 for contact in new_query[:10]:
-    print contact['first_name'] + ' ' + contact['last_name']
+    print ' '.join(contact['first_name', 'last_name'])
 
 # OUTPUT:
 # Darrin Adger
@@ -54,9 +54,9 @@ for contact in new_query[:10]:
 # This new query has a filter. Please notice that the filter parameter is the
 # field name in the SugarCRM module, followed by a double underscore, and then
 # an operator (it can be 'exact', 'contains', 'gt', 'gte', 'lt', 'lte' or 'in').
-new_query = query.filter(last_name__contains='ass')
+new_query = query.filter(last_name__contains = 'ass')
 for contact in new_query[:10]:
-    print contact['first_name'] + ' ' + contact['last_name']
+    print ' '.join(contact['first_name', 'last_name'])
 
 # OUTPUT:
 # Aimee Bassler
@@ -64,38 +64,38 @@ for contact in new_query[:10]:
 # Blake Cassity
 # Ann Hassett
 
-new_query = query.filter(last_name__in=['Bassler', 'Everitt'])
+new_query = query.filter(last_name__in = ['Bassler', 'Everitt'])
 for contact in new_query[:10]:
-    print contact['first_name'] + ' ' + contact['last_name']
+    print ' '.join(contact['first_name', 'last_name'])
 
 # OUTPUT:
 # Aimee Bassler
 # Rosario Bassler
 # Stanford Everitt
 
-query = conn.modules['Cases'].query()
-new_query = query.filter(case_number__lt='7')
+query = conn['Cases'].query()
+new_query = query.filter(case_number__lt = '7')
 for case in new_query[:10]:
-    print case['case_number'] + ' / ' + case['name'] + ' / ' + case['description']
+    print ' / ' .join(case['case_number', 'name', 'description'])
 
 # OUTPUT:
-# 1 / Having trouble adding new items / 
-# 2 / Warning message when using the wrong browser / 
-# 3 / Having trouble adding new items / 
-# 4 / Having trouble adding new items / 
-# 5 / Need assistance with large customization / 
-# 6 / Need to purchase additional licenses / 
+# 1 / Having trouble adding new items /
+# 2 / Warning message when using the wrong browser /
+# 3 / Having trouble adding new items /
+# 4 / Having trouble adding new items /
+# 5 / Need assistance with large customization /
+# 6 / Need to purchase additional licenses /
 
 
 # Search the first case and relate it to the first contact
-query = conn.modules['Cases'].query()
+query = conn['Cases'].query()
 case = query[0]
-query = conn.modules['Contacts'].query()
+query = conn['Contacts'].query()
 query = query.filter(last_name__exact = 'Stampley')
 contact = query[0]
 case.relate(contact)
 
-case.get_related(conn.modules['Contacts'])
+case.get_related(conn['Contacts'])
 
 # OUTPUT:
 # [<SugarCRM Contact entry 'Amelia Stampley'>]
