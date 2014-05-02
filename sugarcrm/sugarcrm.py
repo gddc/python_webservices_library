@@ -19,8 +19,8 @@ class Sugarcrm:
     This class is what is used to connect to and interact with the SugarCRM
     server.
     """
-    
-    def __init__(self, url, username, password, is_ldap_member=False):
+
+    def __init__(self, url, username, password, is_ldap_member = False):
         """Constructor for Sugarcrm connection.
 
         Keyword arguments:
@@ -60,14 +60,14 @@ class Sugarcrm:
                         result = self._sendRequest(method_name,
                                               [self._session] + list(args))
                     except (SugarError, error):
-                        if error.is_invalid_session():
+                        if error.is_invalid_session:
                             # Try to recover if session ID was lost
                             self._login()
                             result = self._sendRequest(method_name,
                                               [self._session] + list(args))
-                        elif error.is_missing_module():
+                        elif error.is_missing_module:
                             return None
-                        elif error.is_null_response():
+                        elif error.is_null_response:
                             return None
                         else:
                             raise SugarUnhandledException('%d, %s - %s' %
@@ -164,9 +164,6 @@ class Sugarcrm:
             Returns an appropriately encoded password for this connection.
             - md5 hash for standard login.
             - plain text for ldap users
-
-        Keyword arguments:
-        password -- string to be encoded
         """
         if self._isldap:
             return self._password

@@ -10,15 +10,19 @@ class SugarError(Exception):
         self.description = data['description']
         self.number = data['number']
 
+    @property
     def is_invalid_session(self):
         return self.number == 11
 
+    @property
     def is_invalid_login(self):
         return self.number == 10
 
+    @property
     def is_missing_module(self):
         return self.number == 20
 
+    @property
     def is_null_response(self):
         return self.number == 0
 
