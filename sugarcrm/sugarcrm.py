@@ -6,9 +6,7 @@
 
 import urllib
 import hashlib
-import json
-import sys
-import re
+import simplejson as json
 
 from sugarerror import SugarError, SugarUnhandledException, is_error
 from sugarmodule import *
