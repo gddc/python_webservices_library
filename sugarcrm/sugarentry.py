@@ -1,10 +1,10 @@
-from HTMLParser import HTMLParser
+from six.moves.html_parser import HTMLParser
 from collections import defaultdict
 from itertools import count
 
 class SugarEntry:
     """Define an entry of a SugarCRM module."""
-    _hashes = defaultdict(count(1).next)
+    _hashes = defaultdict(count(1).next if hasattr(count(1), 'next') else count(1).__next__)
     
 
     def __init__(self, module):
@@ -119,7 +119,7 @@ class SugarEntry:
         try:
             self._fields['id'] = result['id']
         except:
-            print result
+            print(result)
         self._dirty_fields = []
 
         return True

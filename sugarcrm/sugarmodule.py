@@ -1,6 +1,6 @@
 import itertools
-from HTMLParser import HTMLParser
-from sugarentry import SugarEntry
+from six.moves.html_parser import HTMLParser
+from .sugarentry import SugarEntry
 from collections import deque
 
 HTMLP = HTMLParser()
@@ -142,7 +142,7 @@ class QueryList:
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         if self._sent == self._total:
             raise StopIteration
         try:
@@ -154,7 +154,10 @@ class QueryList:
             self._total = result['total']
             self._offset = result['offset']
             self._next_items.extend(result['entries'])
-            return self.next()
+            return self.__next__()
+
+    def next(self):
+        return self.__next__()
 
     def __getitem__(self, index):
         try:
