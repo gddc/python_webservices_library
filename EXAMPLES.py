@@ -4,6 +4,7 @@
 #    This file is part of sugarcrm/python_webservices_library.
 #
 
+from __future__ import print_function, unicode_literals
 import sugarcrm
 
 # This is the URL for the v4 REST API in your SugarCRM server.
@@ -18,7 +19,7 @@ conn = sugarcrm.Sugarcrm(url, username, password)
 query = conn['Contacts'].query()
 # ... but we just show the first ten of them.
 for contact in query[:10]:
-    print ' '.join(contact['first_name', 'last_name'])
+    print(' '.join(contact['first_name', 'last_name']))
 
 # OUTPUT:
 # Darrin Adger
@@ -37,7 +38,7 @@ query = conn['Contacts'].query()
 new_query = query.exclude(last_name__exact = 'Bassler')
 new_query = new_query.exclude(first_name__exact = 'Morris')
 for contact in new_query[:10]:
-    print ' '.join(contact['first_name', 'last_name'])
+    print(' '.join(contact['first_name', 'last_name']))
 
 # OUTPUT:
 # Darrin Adger
@@ -56,7 +57,7 @@ for contact in new_query[:10]:
 # an operator (it can be 'exact', 'contains', 'gt', 'gte', 'lt', 'lte' or 'in').
 new_query = query.filter(last_name__contains = 'ass')
 for contact in new_query[:10]:
-    print ' '.join(contact['first_name', 'last_name'])
+    print(' '.join(contact['first_name', 'last_name']))
 
 # OUTPUT:
 # Aimee Bassler
@@ -66,7 +67,7 @@ for contact in new_query[:10]:
 
 new_query = query.filter(last_name__in = ['Bassler', 'Everitt'])
 for contact in new_query[:10]:
-    print ' '.join(contact['first_name', 'last_name'])
+    print(' '.join(contact['first_name', 'last_name']))
 
 # OUTPUT:
 # Aimee Bassler
@@ -76,7 +77,7 @@ for contact in new_query[:10]:
 query = conn['Cases'].query()
 new_query = query.filter(case_number__lt = '7')
 for case in new_query[:10]:
-    print ' / ' .join(case['case_number', 'name', 'description'])
+    print(' / ' .join(case['case_number', 'name', 'description']))
 
 # OUTPUT:
 # 1 / Having trouble adding new items /
