@@ -1,10 +1,12 @@
-from HTMLParser import HTMLParser
+from __future__ import print_function
+import six
+from six.moves.html_parser import HTMLParser
 from collections import defaultdict
 from itertools import count
 
 class SugarEntry:
     """Define an entry of a SugarCRM module."""
-    _hashes = defaultdict(count(1).next)
+    _hashes = defaultdict(count(1).next if hasattr(count(1), 'next') else count(1).__next__)
     
 
     def __init__(self, module):
@@ -22,7 +24,7 @@ class SugarEntry:
         self._dirty_fields = []
 
         # Make sure that the 'id' field is always defined.
-        if 'id' not in self._fields.keys():
+        if 'id' not in list(self._fields.keys()):
             self._fields['id'] = ''
             
             
@@ -36,7 +38,7 @@ class SugarEntry:
 
 
     def __str__(self):
-        return unicode(self).encode('utf-8')
+        return str(self).encode('utf-8')
 
 
     def _retrieve(self, fieldlist, force = False):
@@ -52,7 +54,7 @@ class SugarEntry:
             for field in fieldlist:
                 self[field] = ''
             return
-        for prop, obj in res['entry_list'][0]['name_value_list'].items():
+        for prop, obj in list(res['entry_list'][0]['name_value_list'].items()):
             if obj['value']:
                 self[prop] = HTMLParser().unescape(obj['value'])
             else:
@@ -119,7 +121,7 @@ class SugarEntry:
         try:
             self._fields['id'] = result['id']
         except:
-            print result
+            print(result)
         self._dirty_fields = []
 
         return True
@@ -152,14 +154,14 @@ class SugarEntry:
             fields = ['id']
         connection = self._module._connection
         # Accomodate retrieval of modules by name.
-        if isinstance(module, basestring):
+        if isinstance(module, six.string_types):
             module = connection[module]
         result = connection.get_relationships(self._module._name, self['id'],
                                               module._name.lower(), '', fields)
         entries = []
         for elem in result['entry_list']:
             entry = SugarEntry(module)
-            for name, field in elem['name_value_list'].items():
+            for name, field in list(elem['name_value_list'].items()):
                 entry._fields[name] = field['value']
             entries.append(entry)
 
