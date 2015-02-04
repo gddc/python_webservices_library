@@ -26,6 +26,10 @@ class SugarError(Exception):
     def is_null_response(self):
         return self.number == 0
 
+    @property
+    def is_invalid_request(self):
+        return self.number == 1001
+
 class SugarUnhandledException(Exception):
     pass
 
