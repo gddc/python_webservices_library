@@ -147,7 +147,7 @@ class SugarEntry:
         self._module._connection.relate(self, *related, **kwargs)
 
 
-    def get_related(self, module, fields = None):
+    def get_related(self, module, fields = None, relateby = None):
         """Return the related entries in another module.
 
         Keyword arguments:
@@ -160,8 +160,11 @@ class SugarEntry:
         # Accomodate retrieval of modules by name.
         if isinstance(module, basestring):
             module = connection[module]
-        result = connection.get_relationships(self._module._name, self['id'],
-                                              module._name.lower(), '', fields)
+        result = connection.get_relationships(self._module._name,
+                                              self['id'],
+                                              relateby or module._name.lower(),
+                                              '',  # Where clause placeholder.
+                                              fields)
         entries = []
         for elem in result['entry_list']:
             entry = SugarEntry(module)
