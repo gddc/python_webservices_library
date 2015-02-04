@@ -156,7 +156,7 @@ class Sugarcrm:
         if main._module._name == 'ProductBundles':
             args.append([[{'name': 'product_index',
                           'value': '%d' % (i + 1)}] for i in range(len(secondary))])
-        self.set_relationships(*args)
+        return self.set_relationships(*args)
 
     @property
     def password(self):
