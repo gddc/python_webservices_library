@@ -4,14 +4,15 @@
 #   KSU capstone project
 #
 
-import urllib
+from six.moves import urllib
 import hashlib
-import json
-import sys
-import re
+try:
+    import simplejson as json # Needs to be installed manually
+except ImportError:
+    import json # Works with python 2.7+
 
-from sugarerror import SugarError, SugarUnhandledException, is_error
-from sugarmodule import *
+from .sugarerror import SugarError, SugarUnhandledException, is_error
+from .sugarmodule import *
 
 class Sugarcrm:
     """Sugarcrm main interface class.
@@ -109,14 +110,14 @@ class Sugarcrm:
         data = json.dumps(data)
         args = {'method': method, 'input_type': 'json',
                 'response_type' : 'json', 'rest_data' : data}
-        params = urllib.urlencode(args)
-        response = urllib.urlopen(self._url, params)
+        params = urllib.parse.urlencode(args).encode('utf-8')
+        response = urllib.request.urlopen(self._url, params)
         response = response.read().strip()
         if not response:
             raise SugarError({'name': 'Empty Result',
                               'description': 'No data from SugarCRM.',
                               'number': 0})
-        result = json.loads(response)
+        result = json.loads(response.decode('utf-8'))
         if is_error(result):
             raise SugarError(result)
         return result
@@ -166,6 +167,6 @@ class Sugarcrm:
         """
         if self._isldap:
             return self._password
-        encode = hashlib.md5(self._password)
+        encode = hashlib.md5(self._password.encode('utf-8'))
         result = encode.hexdigest()
         return result

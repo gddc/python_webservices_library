@@ -5,10 +5,9 @@
 
 """
 
-import os
 from distutils.core import setup
 
-version = '0.2.2'
+version = '0.3.1'
 
 PACKAGES = ['sugarcrm']
 
@@ -24,4 +23,5 @@ setup(name = 'sugarcrm',
                    "Topic :: Office/Business"],
       keywords="Customer Relationship Management SugarCRM CRM",
       packages=PACKAGES,
+      install_requires=['simplejson>=2.2', 'six>=1.4.1']
 )

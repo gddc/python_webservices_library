@@ -1,6 +1,7 @@
+from __future__ import unicode_literals
 import itertools
-from HTMLParser import HTMLParser
-from sugarentry import SugarEntry
+from six.moves.html_parser import HTMLParser
+from .sugarentry import SugarEntry
 from collections import deque
 
 HTMLP = HTMLParser()
@@ -82,7 +83,7 @@ class SugarModule:
 
             for record in resp_data['entry_list']:
                 entry = SugarEntry(self)
-                for key, obj in record['name_value_list'].items():
+                for key, obj in list(record['name_value_list'].items()):
                     entry[key] = HTMLP.unescape(obj['value'])
                 entry_list.append(entry)
 
@@ -116,7 +117,7 @@ class SugarModule:
                 continue
             for record in mod_results['records']:
                 entry = SugarEntry(self)
-                for key, obj in record.items():
+                for key, obj in list(record.items()):
                     entry[key] = HTMLP.unescape(obj['value'])
                 results.append(entry)
         return results
@@ -145,7 +146,7 @@ class QueryList:
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         if self._sent == self._total:
             raise StopIteration
         try:
@@ -157,7 +158,10 @@ class QueryList:
             self._total = result['total']
             self._offset = result['offset']
             self._next_items.extend(result['entries'])
-            return self.next()
+            return self.__next__()
+
+    def next(self):
+        return self.__next__()
 
     def __getitem__(self, index):
         try:
@@ -174,7 +178,7 @@ class QueryList:
         """
 
         q_str = ''
-        for key, val in query.items():
+        for key, val in list(query.items()):
             # Get the field and the operator from the query
             key_field, key_sep, key_oper = key.partition('__')
             if q_str != '':

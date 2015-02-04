@@ -26,7 +26,7 @@ class BasicTesting(BaseTests):
 
     def test_get_module_fields(self):
         response = self._conn.get_module_fields(sugarcrm_config.test_module)
-        self.assertIn('module_fields', response.keys())
+        self.assertIn('module_fields', list(response.keys()))
         self.assertIn('id', response['module_fields'])
 
     def test_get_entries_count(self):
@@ -67,7 +67,7 @@ class EntryTesting(BaseTests):
     def test_relationship(self):
         accounts = self._conn.modules['Accounts']
         account = sugarcrm.SugarEntry(accounts)
-        account['name'] = u'John\'s Account'
+        account['name'] = 'John\'s Account'
         account['website'] = 'http//www.hash-tag.com.ar/'
 
         account.save()
