@@ -69,6 +69,8 @@ class Sugarcrm:
                             return None
                         elif error.is_null_response:
                             return None
+                        elif error.is_invalid_request:
+                            print method_name, args
                         else:
                             raise SugarUnhandledException('%d, %s - %s' %
                                                           (error.number,
