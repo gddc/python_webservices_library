@@ -5,9 +5,9 @@ from itertools import count
 class SugarEntry:
     """Define an entry of a SugarCRM module."""
     _hashes = defaultdict(count(1).next)
-    
 
-    def __init__(self, module):
+
+    def __init__(self, module, fmap = None):
         """Represents a new or an existing entry.
 
         Keyword arguments:
@@ -20,6 +20,10 @@ class SugarEntry:
         # Keep a mapping 'field_name' => value for every valid field retrieved.
         self._fields = {}
         self._dirty_fields = []
+
+        # Allow initial fields in constructor.
+        if fmap is not None:
+            self._fields.update(fmap)
 
         # Make sure that the 'id' field is always defined.
         if 'id' not in self._fields.keys():
