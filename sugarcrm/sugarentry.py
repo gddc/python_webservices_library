@@ -42,6 +42,8 @@ class SugarEntry:
     def __str__(self):
         return unicode(self).encode('utf-8')
 
+    def __contains__(self, key):
+        return key in self._module._fields
 
     def _retrieve(self, fieldlist, force = False):
         qstring = "%s.id = '%s'" % (self._module._table, self['id'])
