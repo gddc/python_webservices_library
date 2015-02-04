@@ -28,16 +28,13 @@ class SugarEntry:
         # Make sure that the 'id' field is always defined.
         if 'id' not in self._fields.keys():
             self._fields['id'] = ''
-            
-            
-    def __hash__(self):
-        return self._hashes['%s-%s' % (self._module._name, self['id'])] 
 
+    def __hash__(self):
+        return self._hashes['%s-%s' % (self._module._name, self['id'])]
 
     def __unicode__(self):
         return "<SugarCRM %s entry '%s'>" % \
                     (self._module._name.rstrip('s'), self['name'])
-
 
     def __str__(self):
         return unicode(self).encode('utf-8')
@@ -64,7 +61,6 @@ class SugarEntry:
             else:
                 self[prop] = ''
 
-
     def __getitem__(self, field_name):
         """Return the value of the field 'field_name' of this SugarEntry.
 
@@ -84,7 +80,6 @@ class SugarEntry:
             self._retrieve([field_name])
         return self._fields[field_name]
 
-
     def __setitem__(self, field_name, value):
         """Set the value of a field of this SugarEntry.
 
@@ -99,7 +94,6 @@ class SugarEntry:
                 self._dirty_fields.append(field_name)
         else:
             raise AttributeError("Invalid field '%s'" % field_name)
-
 
     def save(self):
         """Save this entry in the SugarCRM server.
@@ -130,7 +124,6 @@ class SugarEntry:
 
         return True
 
-
     def relate(self, *related, **kwargs):
         """
 		Relate this SugarEntry with other Sugar Entries.
@@ -145,7 +138,6 @@ class SugarEntry:
         """
 
         self._module._connection.relate(self, *related, **kwargs)
-
 
     def get_related(self, module, fields = None, relateby = None):
         """Return the related entries in another module.
@@ -173,5 +165,4 @@ class SugarEntry:
             entries.append(entry)
 
         return entries
-
 

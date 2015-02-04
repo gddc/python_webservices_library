@@ -93,7 +93,6 @@ class Sugarcrm:
             self.modules[key] = SugarModule(self, key)
         return self.modules[key]
 
-
     def _sendRequest(self, method, data):
         """Sends an API request to the server, returns a dictionary with the
         server's response.
@@ -122,7 +121,6 @@ class Sugarcrm:
             raise SugarError(result)
         return result
 
-
     def _login(self):
         """
             Establish connection to the server.
@@ -136,7 +134,6 @@ class Sugarcrm:
             self._session = x['id']
         except KeyError:
             raise SugarUnhandledException
-
 
     def relate(self, main, *secondary, **kwargs):
         """

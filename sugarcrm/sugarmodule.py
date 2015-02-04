@@ -68,7 +68,10 @@ class SugarModule:
                             query_str, '', start + offset, fields,
                             total - len(entry_list), 0)
             if resp_data['total_count']:
-                result['total'] = int(resp_data['total_count'], 10)
+                try:
+                    result['total'] = int(resp_data['total_count'], 10)
+                except TypeError as e:
+                    print resp_data
             else:
                 result['total'] = 0
             if resp_data['result_count'] == 0:
