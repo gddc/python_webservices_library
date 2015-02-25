@@ -84,7 +84,8 @@ class SugarModule:
             for record in resp_data['entry_list']:
                 entry = SugarEntry(self)
                 for key, obj in list(record['name_value_list'].items()):
-                    entry[key] = HTMLP.unescape(obj['value'])
+                    val = obj['value']
+                    entry[key] = HTMLP.unescape(val) if isinstance(val, basestring) else val
                 entry_list.append(entry)
 
             if resp_data['result_count'] == int(resp_data['total_count'], 10):
@@ -118,7 +119,8 @@ class SugarModule:
             for record in mod_results['records']:
                 entry = SugarEntry(self)
                 for key, obj in list(record.items()):
-                    entry[key] = HTMLP.unescape(obj['value'])
+                    val = obj['value']
+                    entry[key] = HTMLP.unescape(val) if isinstance(val, basestring) else val
                 results.append(entry)
         return results
 
