@@ -106,12 +106,14 @@ class SugarModule:
 
         return QueryList(self, fields = fields)
 
-    def search(self, value):
+    def search(self, value, offset = 0, maxresults = 1000, user = '', fields = None, unifiedonly = True, favorites = False):
         """
         Attempt to search for matching records for this module.
         """
 
-        resp_data = self._connection.search_by_module(value, [self._name])
+        if fields is None:
+            fields = ['id', 'name']
+        resp_data = self._connection.search_by_module(value, [self._name], offset, maxresults, user, fields, unifiedonly, favorites)
         results = []
         for mod_results in resp_data['entry_list']:
             if mod_results['name'] != self._name:
