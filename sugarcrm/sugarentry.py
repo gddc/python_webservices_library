@@ -166,7 +166,6 @@ class SugarEntry:
                                               '',  # Where clause placeholder.
                                               fields,
                                               links_to_fields)
-        print(result)
         entries = []
         for idx, elem in enumerate(result['entry_list']):
             entry = SugarEntry(module)
@@ -176,7 +175,6 @@ class SugarEntry:
                 entry.related_beans = defaultdict(list)
 #                 try:
                 linked = result['relationship_list'][idx]
-                print(linked)
                 for relmod in linked:
                     for record in relmod['records']:
                         relentry = {}
