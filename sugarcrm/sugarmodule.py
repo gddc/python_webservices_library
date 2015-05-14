@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 import itertools
 from six.moves.html_parser import HTMLParser
 from .sugarentry import SugarEntry
-from collections import deque
+from collections import deque, defaultdict
 
 HTMLP = HTMLParser()
 
@@ -39,7 +39,7 @@ class SugarModule:
         self._relationships = (result['link_fields'] or {}).copy()
 
 
-    def _search(self, query_str, start = 0, total = 20, fields = None, query = None):
+    def _search(self, query_str, start = 0, total = 20, fields = None, links_to_names = None, query = None):
         """
           Return a dictionary of records as well as pertinent query
           statistics.
@@ -50,11 +50,14 @@ class SugarModule:
         start -- Record offset to start from
         total -- Maximum number of results to return
         fields -- If set, return only the specified fields
+        links_to_fields -- if set, retrieve related entries from link with fields specified.
         query -- The actual query class instance.
         """
 
         if fields is None:
             fields = []
+        if links_to_names is None:
+          links_to_names = []
         if 'id' not in fields:
             fields.append('id')
         if 'name' not in fields:
@@ -67,7 +70,7 @@ class SugarModule:
         while len(entry_list) < total:
             resp_data = self._connection.get_entry_list(self._name,
                             query_str, '', start + offset, fields,
-                            total - len(entry_list), 0)
+                            links_to_names, total - len(entry_list), 0)
             if resp_data['total_count']:
                 try:
                     result['total'] = int(resp_data['total_count'], 10)
@@ -81,11 +84,18 @@ class SugarModule:
 
             offset = result['offset'] = resp_data['next_offset']
 
-            for record in resp_data['entry_list']:
+            for idx, record in enumerate(resp_data['entry_list']):
                 entry = SugarEntry(self)
                 for key, obj in list(record['name_value_list'].items()):
                     val = obj['value']
                     entry[key] = HTMLP.unescape(val) if isinstance(val, basestring) else val
+                entry.related_beans = defaultdict(list)
+                try:
+                    linked = resp_data['relationship_list'][idx]
+                    for block in linked['link_list']:
+                        entry.related_beans[block['name']].extend(block['records'])
+                except:
+                    pass
                 entry_list.append(entry)
 
             if resp_data['result_count'] == int(resp_data['total_count'], 10):
@@ -95,7 +105,7 @@ class SugarModule:
         return result
 
 
-    def query(self, fields = None):
+    def query(self, fields = None, links_to_names = None):
         """
         Return a QueryList object for this SugarModule.
 
@@ -104,7 +114,7 @@ class SugarModule:
         object.
         """
 
-        return QueryList(self, fields = fields)
+        return QueryList(self, fields = fields, links_to_names = links_to_names)
 
     def search(self, value, offset = 0, maxresults = 1000, user = '', fields = None, unifiedonly = True, favorites = False):
         """
@@ -131,7 +141,7 @@ class SugarModule:
 class QueryList:
     """Query a SugarCRM module for specific entries."""
 
-    def __init__(self, module, query = '', fields = None):
+    def __init__(self, module, query = '', fields = None, links_to_names = None):
         """Constructor for QueryList.
 
         Keyword arguments:
@@ -146,6 +156,7 @@ class QueryList:
         self._total = -1
         self._sent = 0
         self._fields = fields
+        self._links_to_names = links_to_names
 
     def __iter__(self):
         return self
@@ -158,7 +169,7 @@ class QueryList:
             self._sent += 1
             return entry
         except IndexError:
-            result = self._module._search(self._query, self._offset, 5, self._fields)
+            result = self._module._search(self._query, self._offset, 5, self._fields, self._links_to_names)
             self._total = result['total']
             self._offset = result['offset']
             self._next_items.extend(result['entries'])
@@ -236,7 +247,10 @@ class QueryList:
         else:
             query = self._build_query(**query)
 
-        return QueryList(self._module, query, fields = self._fields)
+        return QueryList(self._module,
+                         query,
+                         fields = self._fields,
+                         links_to_names = self._links_to_names)
 
 
     def exclude(self, **query):
@@ -249,7 +263,10 @@ class QueryList:
         else:
             query = 'NOT (%s)' % self._build_query(**query)
 
-        return QueryList(self._module, query, fields = self._fields)
+        return QueryList(self._module,
+                         query,
+                         fields = self._fields,
+                         links_to_names = self._links_to_names)
 
 
     def __len__(self):
