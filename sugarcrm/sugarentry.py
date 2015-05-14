@@ -4,6 +4,8 @@ from six.moves.html_parser import HTMLParser
 from collections import defaultdict
 from itertools import count
 
+HTMLP = HTMLParser()
+
 class SugarEntry:
     """Define an entry of a SugarCRM module."""
     _hashes = defaultdict(count(1).next if hasattr(count(1), 'next') else count(1).__next__)
@@ -59,7 +61,7 @@ class SugarEntry:
             return
         for prop, obj in list(res['entry_list'][0]['name_value_list'].items()):
             if obj['value']:
-                self[prop] = HTMLParser().unescape(obj['value'])
+                self[prop] = HTMLP.unescape(obj['value'])
             else:
                 self[prop] = ''
 
@@ -141,15 +143,19 @@ class SugarEntry:
 
         self._module._connection.relate(self, *related, **kwargs)
 
-    def get_related(self, module, fields = None, relateby = None):
+    def get_related(self, module, fields = None, relateby = None, links_to_fields = None):
         """Return the related entries in another module.
 
         Keyword arguments:
         module -- related SugarModule object
+        relateby -- custom relationship name (defaults to module.lower())
+        links_to_fields -- Allows retrieval of related fields from addtional related modules for retrieved records.
         """
 
         if fields is None:
             fields = ['id']
+        if links_to_fields is None:
+            links_to_fields = []
         connection = self._module._connection
         # Accomodate retrieval of modules by name.
         if isinstance(module, six.string_types):
@@ -158,12 +164,29 @@ class SugarEntry:
                                               self['id'],
                                               relateby or module._name.lower(),
                                               '',  # Where clause placeholder.
-                                              fields)
+                                              fields,
+                                              links_to_fields)
+        print(result)
         entries = []
-        for elem in result['entry_list']:
+        for idx, elem in enumerate(result['entry_list']):
             entry = SugarEntry(module)
             for name, field in list(elem['name_value_list'].items()):
-                entry._fields[name] = field['value']
+                val = field['value']
+                entry._fields[name] = HTMLP.unescape(val) if isinstance(val, basestring) else val
+                entry.related_beans = defaultdict(list)
+#                 try:
+                linked = result['relationship_list'][idx]
+                print(linked)
+                for relmod in linked:
+                    for record in relmod['records']:
+                        relentry = {}
+                        for fname, fmap in record.items():
+                            rfield = fmap['value']
+                            relentry[fname] = HTMLP.unescape(rfield) if isinstance(rfield, six.string_types) else val
+                        entry.related_beans[relmod['name']].append(relentry)
+#                 except:
+#                     pass
+
             entries.append(entry)
 
         return entries
