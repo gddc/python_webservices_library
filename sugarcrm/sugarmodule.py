@@ -203,7 +203,7 @@ class QueryList:
             if key_field.endswith('_c'):
                 if_cstm = '_cstm'
 
-            field = self._module._name.lower() + if_cstm + '.' + key_field
+            field = self._module._table + if_cstm + '.' + key_field
 
             if key_oper in ('exact', 'eq'):
                 q_str += '%s = "%s"' % (field, val)
