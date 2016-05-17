@@ -98,7 +98,7 @@ class SugarModule:
                     pass
                 entry_list.append(entry)
 
-            if resp_data['result_count'] == int(resp_data['total_count'], 10):
+            if resp_data['result_count'] == int(resp_data['total_count']):
                 break
 
         result['entries'] = entry_list
