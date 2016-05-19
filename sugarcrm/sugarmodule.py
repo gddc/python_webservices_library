@@ -170,9 +170,9 @@ class QueryList:
             return entry
         except IndexError:
             result = self._module._search(self._query, self._offset, 5, self._fields, self._links_to_names)
-            self._total = result['total']
-            self._offset = result['offset']
-            self._next_items.extend(result['entries'])
+            self._total = result.get('total', 0)
+            self._offset = result.get('offset', 0)
+            self._next_items.extend(result.get('entries', []))
             return self.__next__()
 
     def next(self):
